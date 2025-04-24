@@ -87,6 +87,9 @@ impl OpenCC {
 fn opencc_jieba_pyo3(m: &Bound<PyModule>) -> PyResult<()> {
     m.add_class::<OpenCC>()?;
 
+    // Optionally add functions:
+    // m.add_function(wrap_pyfunction!(some_func, m)?)?;
+
     Ok(())
 }
 
