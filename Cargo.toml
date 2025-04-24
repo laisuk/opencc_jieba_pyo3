@@ -1,0 +1,13 @@
+[package]
+name = "opencc_jieba_pyo3"
+version = "0.4.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[lib]
+name = "opencc_jieba_pyo3"
+crate-type = ["cdylib"]
+
+[dependencies]
+pyo3 = "0.24.2"
+opencc-jieba-rs = {path = "../opencc-jieba-rs"}
