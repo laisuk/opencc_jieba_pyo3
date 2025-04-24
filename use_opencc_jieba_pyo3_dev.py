@@ -1,3 +1,4 @@
+# test for module after maturin develop --release
 from opencc_jieba_pyo3 import OpenCC
 
 text = "“春眠不觉晓，处处闻啼鸟。夜来风雨声，花落知多少”"
