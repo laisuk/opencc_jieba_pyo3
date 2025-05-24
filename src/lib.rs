@@ -43,11 +43,11 @@ impl OpenCC {
     // Expose jieba_cut to Python, returning Vec<String>
     fn jieba_cut(&self, input: &str) -> Vec<String> {
         // Use jieba.cut and convert Vec<&str> to Vec<String>
-        self.opencc.jieba.cut(input, true).into_iter().map(String::from).collect()
+        self.opencc.jieba_cut(input, true)
     }
 
     fn jieba_cut_and_join(&self, input: &str, delimiter: &str) -> String {
-        self.opencc.jieba.cut(input, true).join(delimiter)
+        self.opencc.jieba_cut(input, true).join(delimiter)
     }
 
     fn jieba_keyword_extract_textrank(&self, input: &str, top_k: i32) -> Vec<String> {
