@@ -9,5 +9,5 @@ name = "opencc_jieba_pyo3"
 crate-type = ["cdylib"]
 
 [dependencies]
-pyo3 = "0.24.2"
+pyo3 = "0.25.0"
 opencc-jieba-rs = {path = "../opencc-jieba-rs"}
