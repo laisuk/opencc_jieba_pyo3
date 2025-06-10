@@ -47,7 +47,8 @@ impl OpenCC {
     }
 
     fn jieba_cut_and_join(&self, input: &str, delimiter: &str) -> String {
-        self.opencc.jieba_cut(input, true).join(delimiter)
+        // self.opencc.jieba_cut(input, true).join(delimiter)
+        self.opencc.jieba_cut_and_join(input, true, delimiter)
     }
 
     fn jieba_keyword_extract_textrank(&self, input: &str, top_k: i32) -> Vec<String> {
