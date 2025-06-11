@@ -4,13 +4,21 @@ build-backend = "maturin"
 
 [project]
 name = "opencc_jieba_pyo3"
+dynamic = ["version"]
 requires-python = ">=3.8"
+description = "A Python extension module powered by Rust Jieba and PyO3, providing fast and accurate Chinese text conversion."
+readme = "README.md"
 classifiers = [
     "Programming Language :: Rust",
     "Programming Language :: Python :: Implementation :: CPython",
     "Programming Language :: Python :: Implementation :: PyPy",
 ]
-dynamic = ["version"]
+license = "MIT"
+license-files = ["LICEN[CS]E*"]
+
+[project.urls]
+Homepage = "https://github.com/laisuk/opencc-jieba-pyo3"
+Issues = "https://github.com/laisuk/opencc-jieba-pyo3/issues"
 
 [tool.maturin]
 features = ["pyo3/extension-module", "pyo3/abi3-py38"]

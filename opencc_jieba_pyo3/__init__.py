@@ -15,9 +15,9 @@ class OpenCC(opencc_jieba_pyo3.OpenCC):
     def convert(self, input_text, punctuation=False):
         return super().convert(input_text, punctuation)
 
-    def jieba_cut(self, input_text: str) -> list[str]:
+    def jieba_cut(self, input_text: str, hmm: bool = True) -> list[str]:
         # Call the Rust function and return the result as a Python list of strings
-        return super().jieba_cut(input_text)
+        return super().jieba_cut(input_text, hmm)
 
     def jieba_cut_and_join(self, input_text: str, delimiter: str = "/") -> str:
         return super().jieba_cut_and_join(input_text, delimiter)

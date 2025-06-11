@@ -1,23 +1,45 @@
+//! # opencc_jieba_pyo3
+//!
+//! This module provides Python bindings for OpenCC and Jieba functionalities using PyO3.
+//! It exposes Chinese text conversion (Simplified/Traditional), segmentation, and keyword extraction
+//! to Python via a unified `OpenCC` class.
+//!
+//! ## Features
+//! - Chinese conversion (OpenCC) with multiple config modes
+//! - Chinese text segmentation (Jieba)
+//! - Keyword extraction (TF-IDF, TextRank)
+//! - Utility functions for punctuation handling and language detection
+
 use opencc_jieba_rs;
 use opencc_jieba_rs::OpenCC as _OpenCC;
 use pyo3::prelude::*;
 
+/// Supported OpenCC conversion configurations.
 const CONFIG_LIST: [&str; 16] = [
     "s2t", "t2s", "s2tw", "tw2s", "s2twp", "tw2sp", "s2hk", "hk2s", "t2tw", "tw2t", "t2twp",
     "tw2tp", "t2hk", "hk2t", "t2jp", "jp2t",
 ];
-// Wrap the OpenCC struct in PyO3
+
+/// Python-exposed OpenCC class, wrapping OpenCC and Jieba functionalities.
+///
+/// ## Parameters
+/// - `config`: Optional conversion config (default: "s2t")
 #[pyclass]
 #[pyo3(subclass)]
 struct OpenCC {
+    /// Internal OpenCC instance.
     opencc: _OpenCC,
+    /// Current OpenCC config string.
     #[pyo3(get, set)]
     config: String,
 }
 
-// Implement methods for the OpenCCWrapper struct
 #[pymethods]
 impl OpenCC {
+    /// Create a new OpenCC instance.
+    ///
+    /// # Arguments
+    /// * `config` - Optional config string (must be in CONFIG_LIST, defaults to "s2t")
     #[new]
     #[pyo3(signature = (config=None))]
     fn new(config: Option<&str>) -> Self {
@@ -32,65 +54,112 @@ impl OpenCC {
         }
     }
 
+    /// Convert Chinese text using the current OpenCC config.
+    ///
+    /// # Arguments
+    /// * `input` - Input text
+    /// * `punctuation` - Whether to convert punctuation
+    ///
+    /// # Returns
+    /// Converted text as String.
     fn convert(&self, input: &str, punctuation: bool) -> String {
         self.opencc.convert(input, &self.config, punctuation)
     }
 
+    /// Detect the type of Chinese in the input text.
+    ///
+    /// # Arguments
+    /// * `input` - Input text
+    ///
+    /// # Returns
+    /// Integer code representing detected Chinese type.
     fn zho_check(&self, input: &str) -> i32 {
         self.opencc.zho_check(input)
     }
 
-    // Expose jieba_cut to Python, returning Vec<String>
-    fn jieba_cut(&self, input: &str) -> Vec<String> {
-        // Use jieba.cut and convert Vec<&str> to Vec<String>
-        self.opencc.jieba_cut(input, true)
+    /// Segment Chinese text using Jieba.
+    ///
+    /// # Arguments
+    /// * `input` - Input text
+    /// * `hmm` - Whether to use HMM for new words
+    ///
+    /// # Returns
+    /// List of segmented words.
+    fn jieba_cut(&self, input: &str, hmm: bool) -> Vec<String> {
+        self.opencc.jieba_cut(input, hmm)
     }
 
+    /// Segment and join Chinese text using Jieba.
+    ///
+    /// # Arguments
+    /// * `input` - Input text
+    /// * `delimiter` - Delimiter for joining words
+    ///
+    /// # Returns
+    /// Joined segmented string.
     fn jieba_cut_and_join(&self, input: &str, delimiter: &str) -> String {
-        // self.opencc.jieba_cut(input, true).join(delimiter)
         self.opencc.jieba_cut_and_join(input, true, delimiter)
     }
 
+    /// Extract keywords using TextRank algorithm.
+    ///
+    /// # Arguments
+    /// * `input` - Input text
+    /// * `top_k` - Number of keywords to extract
+    ///
+    /// # Returns
+    /// List of keywords.
     fn jieba_keyword_extract_textrank(&self, input: &str, top_k: i32) -> Vec<String> {
         self.opencc.keyword_extract_textrank(input, top_k as usize)
     }
 
+    /// Extract keywords using TF-IDF algorithm.
+    ///
+    /// # Arguments
+    /// * `input` - Input text
+    /// * `top_k` - Number of keywords to extract
+    ///
+    /// # Returns
+    /// List of keywords.
     fn jieba_keyword_extract_tfidf(&self, input: &str, top_k: i32) -> Vec<String> {
         self.opencc.keyword_extract_tfidf(input, top_k as usize)
     }
 
+    /// Extract keywords and their weights using TextRank.
+    ///
+    /// # Arguments
+    /// * `input` - Input text
+    /// * `top_k` - Number of keywords to extract
+    ///
+    /// # Returns
+    /// List of (keyword, weight) tuples.
     fn jieba_keyword_weight_textrank(&self, input: &str, top_k: i32) -> Vec<(String, f64)> {
-        // Assume that the return type of keyword_weight_textrank is Vec<Keyword>
         let keywords = self.opencc.keyword_weight_textrank(input, top_k as usize);
-        // Manually transform the Vec<Keyword> into Vec<(String, usize)>
         keywords.into_iter()
-            .map(|keyword| {
-                // Assume keyword has fields `word: String` and `weight: f64`
-                (keyword.keyword, keyword.weight)
-            })
+            .map(|keyword| (keyword.keyword, keyword.weight))
             .collect()
     }
 
+    /// Extract keywords and their weights using TF-IDF.
+    ///
+    /// # Arguments
+    /// * `input` - Input text
+    /// * `top_k` - Number of keywords to extract
+    ///
+    /// # Returns
+    /// List of (keyword, weight) tuples.
     fn jieba_keyword_weight_tfidf(&self, input: &str, top_k: i32) -> Vec<(String, f64)> {
-        // Assume that the return type of keyword_weight_textrank is Vec<Keyword>
         let keywords = self.opencc.keyword_weight_tfidf(input, top_k as usize);
-        // Manually transform the Vec<Keyword> into Vec<(String, usize)>
         keywords.into_iter()
-            .map(|keyword| {
-                // Assume keyword has fields `word: String` and `weight: f64`
-                (keyword.keyword, keyword.weight)
-            })
+            .map(|keyword| (keyword.keyword, keyword.weight))
             .collect()
     }
 }
 
+/// Python module definition for opencc_jieba_pyo3.
 #[pymodule]
 fn opencc_jieba_pyo3(m: &Bound<PyModule>) -> PyResult<()> {
     m.add_class::<OpenCC>()?;
-
-    // Optionally add functions:
-    // m.add_function(wrap_pyfunction!(some_func, m)?)?;
-
     Ok(())
 }
 
