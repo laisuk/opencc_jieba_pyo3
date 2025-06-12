@@ -181,9 +181,9 @@ Unified Python interface for OpenCC and Jieba functionalities.
 
 ## Development
 
-- Rust source: [src/lib.rs](src/lib.rs)
-- Python bindings: [opencc_jieba_pyo3/__init__.py](opencc_jieba_pyo3/__init__.py), [opencc_jieba_pyo3/opencc_jieba_pyo3.pyi](opencc_jieba_pyo3/opencc_jieba_pyo3.pyi)
-- CLI: [opencc_jieba_pyo3/__main__.py](opencc_jieba_pyo3/__main__.py)
+- Rust source: [src/lib.rs](https://github.com/laisuk/opencc_jieba_pyo3/blob/master/src/lib.rs)
+- Python bindings: [/opencc_jieba_pyo3/__init__.py](https://github.com/laisuk/opencc_jieba_pyo3/blob/master/opencc_jieba_pyo3/__init__.py), [opencc_jieba_pyo3/opencc_jieba_pyo3.pyi](https://github.com/laisuk/opencc_jieba_pyo3/blob/master/opencc_jieba_pyo3/opencc_jieba_pyo3.pyi)
+- CLI: [opencc_jieba_pyo3/__main__.py](https://github.com/laisuk/opencc_jieba_pyo3/blob/master/opencc_jieba_pyo3/__main__.py)
 
 ## Rust Module Required
 

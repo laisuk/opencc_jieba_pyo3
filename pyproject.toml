@@ -18,5 +18,5 @@ classifiers = [
 license = { text = "MIT" }
 
 [project.urls]
-Homepage = "https://github.com/laisuk/opencc-jieba-pyo3"
-Issues = "https://github.com/laisuk/opencc-jieba-pyo3/issues"
+Homepage = "https://github.com/laisuk/opencc_jieba_pyo3"
+Issues = "https://github.com/laisuk/opencc_jieba_pyo3/issues"
