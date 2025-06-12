@@ -1,4 +1,5 @@
 from .opencc_jieba_pyo3 import *
+from typing import List, Tuple
 
 
 class OpenCC(opencc_jieba_pyo3.OpenCC):
@@ -15,23 +16,23 @@ class OpenCC(opencc_jieba_pyo3.OpenCC):
     def convert(self, input_text, punctuation=False):
         return super().convert(input_text, punctuation)
 
-    def jieba_cut(self, input_text: str, hmm: bool = True) -> list[str]:
+    def jieba_cut(self, input_text: str, hmm: bool = True) -> List[str]:
         # Call the Rust function and return the result as a Python list of strings
         return super().jieba_cut(input_text, hmm)
 
     def jieba_cut_and_join(self, input_text: str, delimiter: str = "/") -> str:
         return super().jieba_cut_and_join(input_text, delimiter)
 
-    def jieba_keyword_extract_textrank(self, input_text: str, top_k: int) -> list[str]:
+    def jieba_keyword_extract_textrank(self, input_text: str, top_k: int) -> List[str]:
         # Call the Rust function and return the result as a Python list of strings
         return super().jieba_keyword_extract_textrank(input_text, top_k)
 
-    def jieba_keyword_extract_tfidf(self, input_text: str, top_k: int) -> list[str]:
+    def jieba_keyword_extract_tfidf(self, input_text: str, top_k: int) -> List[str]:
         return super().jieba_keyword_extract_tfidf(input_text, top_k)
 
-    def jieba_keyword_weight_textrank(self, input_text: str, top_k: int) -> list[tuple[str, float]]:
+    def jieba_keyword_weight_textrank(self, input_text: str, top_k: int) -> List[Tuple[str, float]]:
         # Call the Rust function and return the result as a list of tuples (String, f64)
         return super().jieba_keyword_weight_textrank(input_text, top_k)
 
-    def jieba_keyword_weight_tfidf(self, input_text: str, top_k: int) -> list[tuple[str, float]]:
+    def jieba_keyword_weight_tfidf(self, input_text: str, top_k: int) -> List[Tuple[str, float]]:
         return super().jieba_keyword_weight_tfidf(input_text, top_k)
