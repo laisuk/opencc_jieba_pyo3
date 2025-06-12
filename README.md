@@ -35,7 +35,7 @@ Or for development:
 maturin develop -r
 ```
 
-See [BUILD.md](BUILD.md) for detailed build and install instructions.
+See [BUILD.md](https://github.com/laisuk/opencc_jieba_pyo3/blob/master/BUILD.md) for detailed build and install instructions.
 
 ## Usage
 
