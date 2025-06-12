@@ -1,6 +1,6 @@
 [package]
 name = "opencc_jieba_pyo3"
-version = "0.5.0"
+version = "0.5.1"
 edition = "2021"
 authors = ["laisuk <laisuk@yahoo.com>"]
 license = "MIT"
