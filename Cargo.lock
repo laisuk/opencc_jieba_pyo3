@@ -370,6 +370,7 @@ checksum = "42f5e15c9953c5e4ccceeb2e7382a716482c34515315f7b03532b8b4e8393d2d"
 [[package]]
 name = "opencc-jieba-rs"
 version = "0.5.0"
+source = "git+https://github.com/laisuk/opencc-jieba-rs.git?branch=master#4f035b26cf84d3a023f1bd773e0c0bed99d33245"
 dependencies = [
  "jieba-rs",
  "once_cell",

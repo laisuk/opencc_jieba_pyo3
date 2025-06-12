@@ -2,6 +2,11 @@
 name = "opencc_jieba_pyo3"
 version = "0.5.0"
 edition = "2021"
+authors = ["laisuk <laisuk@yahoo.com>"]
+license = "MIT"
+description = "A Python extension module powered by Rust Jieba and PyO3, providing fast and accurate Chinese text conversion."
+repository = "https://github.com/laisuk/opencc_jieba_pyo3"
+readme = "README.md"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [lib]
@@ -9,6 +14,9 @@ name = "opencc_jieba_pyo3"
 crate-type = ["cdylib"]
 
 [dependencies]
-#pyo3 = { version = "0.25.0", features = ["extension-module", "abi3-py38"]}
-pyo3 = "0.25.0"
-opencc-jieba-rs = { path = "../opencc-jieba-rs" }
+pyo3 = { version = "0.25.0", features = ["extension-module", "abi3-py38"]}
+#opencc-jieba-rs = { path = "../opencc-jieba-rs" }
+opencc-jieba-rs = { git = "https://github.com/laisuk/opencc-jieba-rs.git", branch = "master" }
+
+[package.metadata.maturin]
+name = "opencc_jieba_pyo3"
