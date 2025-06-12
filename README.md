@@ -188,7 +188,7 @@ Unified Python interface for OpenCC and Jieba functionalities.
 
 ## License
 
-[MIT](./LICENSE)
+[MIT](https://github.com/laisuk/opencc_jieba_pyo3/blob/master/LICENSE)
 
 ---
 
