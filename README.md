@@ -1,7 +1,10 @@
 # opencc_jieba_pyo3
 
-[![PyPI version](https://img.shields.io/pypi/v/opencc-jieba-pyo3)](https://pypi.org/project/opencc-jieba-pyo3/)
-[![Build](https://github.com/laisuk/opencc_jieba_pyo3/actions/workflows/build.yml/badge.svg)](https://github.com/laisuk/opencc_jieba_pyo3/actions/workflows/build.yml)
+[![PyPI version](https://img.shields.io/pypi/v/opencc-jieba-pyo3.svg)](https://pypi.org/project/opencc-jieba-pyo3/)
+[![Downloads](https://pepy.tech/badge/opencc-jieba-pyo3)](https://pepy.tech/project/opencc-jieba-pyo3)
+[![Python Versions](https://img.shields.io/pypi/pyversions/opencc-jieba-pyo3.svg)](https://pypi.org/project/opencc-jieba-pyo3/)
+[![License](https://img.shields.io/github/license/laisuk/opencc_jieba_pyo3)](https://github.com/laisuk/opencc_jieba_pyo3/blob/main/LICENSE)
+[![Build Status](https://github.com/laisuk/opencc_jieba_pyo3/actions/workflows/build.yml/badge.svg)](https://github.com/laisuk/opencc_jieba_pyo3/actions/workflows/build.yml)
 
 `opencc_jieba_pyo3` is a Python extension module powered by [Rust](https://www.rust-lang.org/) Jieba and [PyO3](https://pyo3.rs/), providing fast and accurate conversion between different Chinese text variants using [opencc-jieba-rs](https://github.com/laisuk/opencc-jieba-rs) and [OpenCC](https://github.com/BYVoid/OpenCC) algorithms.
 

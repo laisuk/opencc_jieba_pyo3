@@ -8,14 +8,23 @@ dynamic = ["version"]
 requires-python = ">=3.7"
 description = "A Python extension module powered by Rust Jieba and PyO3, providing fast and accurate Chinese text conversion."
 readme = "README.md"
+license = { text = "MIT" }
+
 classifiers = [
     "Programming Language :: Rust",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
     "Programming Language :: Python :: Implementation :: CPython",
     "Programming Language :: Python :: Implementation :: PyPy",
     "License :: OSI Approved :: MIT License",
-    "Operating System :: OS Independent",
+    "Operating System :: OS Independent"
 ]
-license = { text = "MIT" }
 
 [project.urls]
 Homepage = "https://github.com/laisuk/opencc_jieba_pyo3"
