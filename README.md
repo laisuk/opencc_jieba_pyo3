@@ -222,7 +222,7 @@ Processor: Intel64 Family 6 Model 191 Stepping 2, GenuineIntel
 
 ### Throughput VS Size
 
-![ThroughputSizeChart](https://github.com/laisuk/opencc_jieba_pyo3/blob/master/opencc_jieba_pyo3/assets/throughput_vs_size.png)
+![ThroughputSizeChart](https://github.com/laisuk/opencc_jieba_pyo3/blob/master/assets/throughput_vs_size.png)
 
 ## License
 
