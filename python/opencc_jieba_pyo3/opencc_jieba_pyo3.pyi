@@ -1,3 +1,4 @@
+from typing import List, Tuple
 class OpenCC:
     """
     Python binding for OpenCC and Jieba functionalities.
@@ -44,10 +45,11 @@ class OpenCC:
 
         Returns:
             int: Integer code representing detected Chinese type.
+            (1: Traditional, 2: Simplified, 0: Others)
         """
         ...
 
-    def jieba_cut(self, input_text: str, hmm: bool) -> list[str]:
+    def jieba_cut(self, input_text: str, hmm: bool) -> List[str]:
         """
         Segment Chinese text using Jieba.
 
@@ -73,7 +75,7 @@ class OpenCC:
         """
         ...
 
-    def jieba_keyword_extract_textrank(self, input_text: str, top_k: int) -> list[str]:
+    def jieba_keyword_extract_textrank(self, input_text: str, top_k: int) -> List[str]:
         """
         Extract keywords using the TextRank algorithm.
 
@@ -86,7 +88,7 @@ class OpenCC:
         """
         ...
 
-    def jieba_keyword_extract_tfidf(self, input_text: str, top_k: int) -> list[str]:
+    def jieba_keyword_extract_tfidf(self, input_text: str, top_k: int) -> List[str]:
         """
         Extract keywords using the TF-IDF algorithm.
 
@@ -99,7 +101,7 @@ class OpenCC:
         """
         ...
 
-    def jieba_keyword_weight_textrank(self, input_text: str, top_k: int) -> list[tuple[str, float]]:
+    def jieba_keyword_weight_textrank(self, input_text: str, top_k: int) -> List[Tuple[str, float]]:
         """
         Extract keywords and their weights using TextRank.
 
@@ -112,7 +114,7 @@ class OpenCC:
         """
         ...
 
-    def jieba_keyword_weight_tfidf(self, input_text: str, top_k: int) -> list[tuple[str, float]]:
+    def jieba_keyword_weight_tfidf(self, input_text: str, top_k: int) -> List[Tuple[str, float]]:
         """
         Extract keywords and their weights using TF-IDF.
 

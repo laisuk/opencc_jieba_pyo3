@@ -192,6 +192,38 @@ Unified Python interface for OpenCC and Jieba functionalities.
 
 [opencc-jieba-rs](https://github.com/laisuk/opencc-jieba-rs) : A Rust implementation of Jieba + OpenCC
 
+## Benchmarks
+
+```
+=====
+Package: opencc_jieba_pyo3
+Python 3.13.4 (tags/v3.13.4:8a526ec, Jun  3 2025, 17:46:04) [MSC v.1943 64 bit (AMD64)]
+Platform: Windows-11-10.0.26100-SP0
+Processor: Intel64 Family 6 Model 191 Stepping 2, GenuineIntel
+=====
+```
+
+### BENCHMARK RESULTS
+
+| Method           | Config |  TextSize |        Mean |      StdDev |         Min |         Max |     Ops/sec |   Chars/sec |
+|:-----------------|--------|----------:|------------:|------------:|------------:|------------:|------------:|------------:|
+| Convert_Small    | s2t    |       100 |    0.161 ms |    0.109 ms |    0.080 ms |    0.794 ms |        6217 |      621740 |
+| Convert_Medium   | s2t    |      1000 |    0.389 ms |    0.092 ms |    0.286 ms |    0.829 ms |        2571 |     2571236 |
+| Convert_Large    | s2t    |     10000 |    1.261 ms |    0.314 ms |    1.072 ms |    2.580 ms |         793 |     7932120 |
+| Convert_XLarge   | s2t    |    100000 |    7.290 ms |    0.464 ms |    6.864 ms |    9.848 ms |         137 |    13716798 |
+| Convert_Small    | s2tw   |       100 |    0.189 ms |    0.104 ms |    0.103 ms |    0.620 ms |        5285 |      528519 |
+| Convert_Medium   | s2tw   |      1000 |    0.442 ms |    0.152 ms |    0.322 ms |    1.084 ms |        2264 |     2264206 |
+| Convert_Large    | s2tw   |     10000 |    1.508 ms |    0.200 ms |    1.367 ms |    2.371 ms |         663 |     6631682 |
+| Convert_XLarge   | s2tw   |    100000 |    9.403 ms |    0.585 ms |    9.009 ms |   13.320 ms |         106 |    10635363 |
+| Convert_Small    | s2twp  |       100 |    0.235 ms |    0.113 ms |    0.129 ms |    0.648 ms |        4256 |      425586 |
+| Convert_Medium   | s2twp  |      1000 |    0.518 ms |    0.112 ms |    0.363 ms |    0.913 ms |        1932 |     1932266 |
+| Convert_Large    | s2twp  |     10000 |    1.786 ms |    0.209 ms |    1.590 ms |    2.739 ms |         560 |     5598571 |
+| Convert_XLarge   | s2twp  |    100000 |   11.644 ms |    0.979 ms |   10.892 ms |   17.130 ms |          86 |     8588034 |
+
+### Throughput VS Size
+
+![ThroughputSizeChart](https://github.com/laisuk/opencc_jieba_pyo3/blob/master/opencc_jieba_pyo3/assets/throughput_vs_size.png)
+
 ## License
 
 [MIT](https://github.com/laisuk/opencc_jieba_pyo3/blob/master/LICENSE)
