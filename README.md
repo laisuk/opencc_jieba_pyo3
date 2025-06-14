@@ -195,12 +195,10 @@ Unified Python interface for OpenCC and Jieba functionalities.
 ## Benchmarks
 
 ```
-=====
 Package: opencc_jieba_pyo3
 Python 3.13.4 (tags/v3.13.4:8a526ec, Jun  3 2025, 17:46:04) [MSC v.1943 64 bit (AMD64)]
 Platform: Windows-11-10.0.26100-SP0
 Processor: Intel64 Family 6 Model 191 Stepping 2, GenuineIntel
-=====
 ```
 
 ### BENCHMARK RESULTS
@@ -230,4 +228,4 @@ Processor: Intel64 Family 6 Model 191 Stepping 2, GenuineIntel
 
 ---
 
-Powered by Rust, Jieba, PyO3, opencc-jieba-rs and OpenCC.
+Powered by Rust, Jieba, PyO3, OpenCC and opencc-jieba-rs.

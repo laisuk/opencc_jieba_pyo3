@@ -13,6 +13,10 @@ def subcommand_convert(args):
 
     opencc = OpenCC(args.config)
 
+    # Prompt only if reading from stdin, and it's interactive (i.e., not piped or redirected)
+    if args.input is None and sys.stdin.isatty():
+        print("Input text to convert, <Ctrl+Z> (Windows) or <Ctrl+D> (Unix) then Enter to submit:", file=sys.stderr)
+
     with io.open(args.input if args.input else 0, encoding=args.in_enc) as f:
         input_str = f.read()
 
@@ -23,12 +27,17 @@ def subcommand_convert(args):
 
     in_from = args.input if args.input else "<stdin>"
     out_to = args.output if args.output else "<stdout>"
-    print(f"Conversion completed ({args.config}): {in_from} -> {out_to}", file=sys.stderr)
+    if sys.stderr.isatty():
+        print(f"Conversion completed ({args.config}): {in_from} -> {out_to}", file=sys.stderr)
     return 0
 
 
 def subcommand_segment(args):
     opencc = OpenCC()  # Default config if not needed for segmentation
+
+    # Prompt only if reading from stdin, and it's interactive (i.e., not piped or redirected)
+    if args.input is None and sys.stdin.isatty():
+        print("Input text to segment, <Ctrl+Z> (Windows) or <Ctrl+D> (Unix) then Enter to submit:", file=sys.stderr)
 
     with io.open(args.input if args.input else 0, encoding=args.in_enc) as f:
         input_str = f.read()
@@ -42,14 +51,15 @@ def subcommand_segment(args):
 
     in_from = args.input if args.input else "<stdin>"
     out_to = args.output if args.output else "<stdout>"
-    print(f"Segmentation completed: {in_from} -> {out_to}", file=sys.stderr)
+    if sys.stderr.isatty():
+        print(f"Segmentation completed: {in_from} -> {out_to}", file=sys.stderr)
     return 0
 
 
 def main():
     parser = argparse.ArgumentParser(
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
-        description="OpenCC + Jieba CLI"
+        description="opencc_jieba_pyo3 an OpenCC + Jieba CLI"
     )
     subparsers = parser.add_subparsers(dest='command', required=True)
 
