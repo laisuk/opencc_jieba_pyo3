@@ -1,7 +1,7 @@
 # opencc_jieba_pyo3
 
 [![PyPI version](https://img.shields.io/pypi/v/opencc-jieba-pyo3.svg)](https://pypi.org/project/opencc-jieba-pyo3/)
-[![Downloads](https://pepy.tech/badge/opencc-jieba-pyo3)](https://pepy.tech/project/opencc-jieba-pyo3)
+[![Downloads](https://static.pepy.tech/personalized-badge/opencc-jieba-pyo3?period=month&units=international_system&left_color=gray&right_color=blue&left_text=PyPI%20Downloads)](https://pepy.tech/project/opencc-jieba-pyo3)
 [![Python Versions](https://img.shields.io/pypi/pyversions/opencc-jieba-pyo3.svg)](https://pypi.org/project/opencc-jieba-pyo3/)
 [![License](https://img.shields.io/github/license/laisuk/opencc_jieba_pyo3)](https://github.com/laisuk/opencc_jieba_pyo3/blob/main/LICENSE)
 [![Build Status](https://github.com/laisuk/opencc_jieba_pyo3/actions/workflows/build.yml/badge.svg)](https://github.com/laisuk/opencc_jieba_pyo3/actions/workflows/build.yml)
