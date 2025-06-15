@@ -1,8 +1,8 @@
-from .opencc_jieba_pyo3 import *
+from .opencc_jieba_pyo3 import OpenCC as _OpenCC
 from typing import List, Tuple
 
 
-class OpenCC(opencc_jieba_pyo3.OpenCC):
+class OpenCC(_OpenCC):
     _config_list = [
         "s2t", "t2s", "s2tw", "tw2s", "s2twp", "tw2sp", "s2hk", "hk2s", "t2tw", "tw2t", "t2twp", "tw2t", "tw2tp",
         "t2hk", "hk2t", "t2jp", "jp2t"

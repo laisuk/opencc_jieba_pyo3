@@ -23,12 +23,12 @@ class OpenCC:
         self.config = config
         ...
 
-    def convert(self, input: str, punctuation: bool) -> str:
+    def convert(self, input_text: str, punctuation: bool) -> str:
         """
         Convert Chinese text using the current OpenCC config.
 
         Args:
-            input (str): Input text.
+            input_text (str): Input text.
             punctuation (bool): Whether to convert punctuation.
 
         Returns:
@@ -36,12 +36,12 @@ class OpenCC:
         """
         ...
 
-    def zho_check(self, input: str) -> int:
+    def zho_check(self, input_text: str) -> int:
         """
         Detect the type of Chinese in the input text.
 
         Args:
-            input (str): Input text.
+            input_text (str): Input text.
 
         Returns:
             int: Integer code representing detected Chinese type.

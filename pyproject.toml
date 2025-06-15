@@ -8,7 +8,6 @@ dynamic = ["version"]
 requires-python = ">=3.7"
 description = "A Python extension module powered by Rust Jieba and PyO3, providing fast and accurate Chinese text conversion."
 readme = "README.md"
-urls = { "Changelog" = "https://github.com/laisuk/opencc-jieba-pyo3/blob/master/CHANGELOG.md" }
 license = { text = "MIT" }
 
 classifiers = [
@@ -30,3 +29,4 @@ classifiers = [
 [project.urls]
 Homepage = "https://github.com/laisuk/opencc_jieba_pyo3"
 Issues = "https://github.com/laisuk/opencc_jieba_pyo3/issues"
+ChangeLog = "https://github.com/laisuk/opencc-jieba-pyo3/blob/master/CHANGELOG.md"
