@@ -18,9 +18,30 @@
 - Keyword extraction (TF-IDF, TextRank).
 - Utility functions for punctuation handling and language detection.
 
-## Supported Conversion Configurations
+---
 
-- `s2t`, `t2s`, `s2tw`, `tw2s`, `s2twp`, `tw2sp`, `s2hk`, `hk2s`, `t2tw`, `tw2t`, `t2twp`, `tw2tp`, `t2hk`, `hk2t`, `t2jp`, `jp2t`
+## 🔁 Supported Conversion Configs
+
+| Code    | Description                                    |
+|---------|------------------------------------------------|
+| `s2t`   | Simplified → Traditional                       |
+| `t2s`   | Traditional → Simplified                       |
+| `s2tw`  | Simplified → Traditional (Taiwan)              |
+| `tw2s`  | Traditional (Taiwan) → Simplified              |
+| `s2twp` | Simplified → Traditional (Taiwan) with idioms  |
+| `tw2sp` | Traditional (Taiwan)  → Simplified with idioms |
+| `s2hk`  | Simplified → Traditional (Hong Kong)           |
+| `hk2s`  | Traditional (Hong Kong) → Simplified           |
+| `t2tw`  | Traditional → Traditional (Taiwan)             |
+| `tw2t`  | Traditional (Taiwan) → Traditional             |
+| `t2twp` | Traditional → Traditional (Taiwan) with idioms |
+| `tw2tp` | Traditional (Taiwan) → Traditional with idioms |
+| `t2hk`  | Traditional → Traditional (Hong Kong)          |
+| `hk2t`  | Traditional (Hong Kong) → Traditional          |
+| `t2jp`  | Japanese Kyojitai → Shinjitai                  |
+| `jp2t`  | Japanese Shinjitai → Kyojitai                  |
+
+---
 
 ## Installation
 
@@ -214,7 +235,7 @@ Processor: Intel64 Family 6 Model 191 Stepping 2, GenuineIntel
 | Convert_Large    | s2tw   |   10,000 |    1.508 ms |    0.200 ms |    1.367 ms |    2.371 ms |     663 |  6,631,682 |
 | Convert_XLarge   | s2tw   |  100,000 |    9.403 ms |    0.585 ms |    9.009 ms |   13.320 ms |     106 | 10,635,363 |
 | Convert_Small    | s2twp  |      100 |    0.235 ms |    0.113 ms |    0.129 ms |    0.648 ms |   4,256 |    425,586 |
-| Convert_Medium   | s2twp  |     1000 |    0.518 ms |    0.112 ms |    0.363 ms |    0.913 ms |   1,932 |  1,932,266 |
+| Convert_Medium   | s2twp  |    1,000 |    0.518 ms |    0.112 ms |    0.363 ms |    0.913 ms |   1,932 |  1,932,266 |
 | Convert_Large    | s2twp  |   10,000 |    1.786 ms |    0.209 ms |    1.590 ms |    2.739 ms |     560 |  5,598,571 |
 | Convert_XLarge   | s2twp  |  100,000 |   11.644 ms |    0.979 ms |   10.892 ms |   17.130 ms |      86 |  8,588,034 |
 
