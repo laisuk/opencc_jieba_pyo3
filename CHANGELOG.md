@@ -6,6 +6,11 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ---
 
+## [0.5.2] – 2025-06-19
+- Code optimized
+- Fixed type runtimes warnings in Python 3.8
+- Add set_config(), get_config() and supported_configs()
+
 ## [0.5.1] – 2025-06-13
 
 ### Added
