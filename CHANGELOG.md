@@ -6,16 +6,31 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ---
 
+## [0.6.0] 2025-07-12
+
+### Changed
+- Update opencc-jieba-rs to v0.6.0
+
+---
+
 ## [0.5.3] - 2025-06-27
-- Update from opencc-jieba-rs
+
+### Changed
+- Update opencc-jieba-rs to v0.5.3
 
 ---
 
 ## [0.5.2] – 2025-06-19
-- Code optimized
-- Fixed type runtimes warnings in Python 3.8
+
+### Added
 - Add set_config(), get_config() and supported_configs()
 - Add opencc_jieba_py03 executable script
+
+### Changed
+- Code optimized
+
+### Fixed
+- Fixed type runtimes warnings in Python 3.8
 
 ---
 
@@ -25,6 +40,8 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 - **Segment command**: CLI support for Chinese word segmentation using Jieba.
 - **Customizable delimiters**: `--delim` (`-d`) option added to `segment` subcommand for setting output separator (e.g., space, slash, etc.).
 - Python API: `.segment(text: str, delim: str = " ")` method added to `OpenCC` class.
+
+### Changed
 - Improved CLI argument parsing, help message formatting, and file encoding handling.
 
 ---

@@ -13,7 +13,7 @@ def subcommand_convert(args):
 
     opencc = OpenCC(args.config)
 
-    # Prompt only if reading from stdin and it's interactive (i.e., not piped or redirected)
+    # Prompt only if reading from stdin, and it's interactive (i.e., not piped or redirected)
     if args.input is None and sys.stdin.isatty():
         print("Input text to convert, <Ctrl+Z> (Windows) or <Ctrl+D> (Unix) then Enter to submit:", file=sys.stderr)
 

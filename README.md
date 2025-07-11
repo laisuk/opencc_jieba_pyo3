@@ -6,7 +6,7 @@
 [![License](https://img.shields.io/github/license/laisuk/opencc_jieba_pyo3)](https://github.com/laisuk/opencc_jieba_pyo3/blob/main/LICENSE)
 [![Build Status](https://github.com/laisuk/opencc_jieba_pyo3/actions/workflows/build.yml/badge.svg)](https://github.com/laisuk/opencc_jieba_pyo3/actions/workflows/build.yml)
 
-`opencc_jieba_pyo3` is a Python extension module powered by [Rust](https://www.rust-lang.org/) Jieba and [PyO3](https://pyo3.rs/), providing fast and accurate conversion between different Chinese text variants using [opencc-jieba-rs](https://github.com/laisuk/opencc-jieba-rs) and [OpenCC](https://github.com/BYVoid/OpenCC) algorithms.
+`opencc_jieba_pyo3` is a Python extension module powered by [Rust](https://www.rust-lang.org/), [Jieba](https://github.com/fxsjy/jieba) and [PyO3](https://pyo3.rs/), providing fast and accurate conversion between different Chinese text variants using [opencc-jieba-rs](https://github.com/laisuk/opencc-jieba-rs) and [OpenCC](https://github.com/BYVoid/OpenCC) algorithms.
 
 ## Features
 
@@ -14,7 +14,7 @@
 - Fast and memory-efficient, leveraging Rust's performance.
 - Easy-to-use Python API.
 - Supports punctuation conversion and automatic text code detection.
-- Chinese word segmentation (Jieba).
+- Chinese word (Both Traditional and Simplified) segmentation (Jieba).
 - Keyword extraction (TF-IDF, TextRank).
 - Utility functions for punctuation handling and language detection.
 
@@ -38,8 +38,8 @@
 | `tw2tp` | Traditional (Taiwan) → Traditional with idioms |
 | `t2hk`  | Traditional → Traditional (Hong Kong)          |
 | `hk2t`  | Traditional (Hong Kong) → Traditional          |
-| `t2jp`  | Japanese Kyojitai → Shinjitai                  |
-| `jp2t`  | Japanese Shinjitai → Kyojitai                  |
+| `t2jp`  | Japanese Kyujitai → Shinjitai                  |
+| `jp2t`  | Japanese Shinjitai → Kyujitai                  |
 
 ---
 
@@ -60,6 +60,8 @@ maturin develop -r
 ```
 
 See [BUILD.md](https://github.com/laisuk/opencc_jieba_pyo3/blob/master/BUILD.md) for detailed build and install instructions.
+
+---
 
 ## Usage
 
@@ -98,14 +100,18 @@ kw_weights_tfidf = opencc.jieba_keyword_weight_tfidf(text, top_k=3)
 print(kw_weights_tfidf)  # [('春眠', 2.34), ('啼鸟', 1.56), ('处处', 1.12)]
 ```
 
+---
+
 ### CLI
 
-You can also use the CLI interface:
+You can also use the CLI interface via Python module or Python script:  
 
 #### convert
 
 ```
-python -m opencc_jieba_pyo3 convert --help
+Module: python -m opencc_jieba_pyo3 convert --help
+Script: opencc-jieba-pyo3 convert --help
+
 usage: opencc_jieba_pyo3 convert [-h] [-i <file>] [-o <file>] [-c <conversion>] [-p] [--in-enc <encoding>] [--out-enc <encoding>]
 
 options:
@@ -123,6 +129,8 @@ options:
 
 ```
 python -m opencc_jieba_pyo3 segment --help
+opencc-jieba-pyo3 convert segment --help
+
 usage: opencc_jieba_pyo3 segment [-h] [-i <file>] [-o <file>] [-d <char>] [--in-enc <encoding>] [--out-enc <encoding>]
 
 options:
@@ -136,8 +144,12 @@ options:
 
 ```sh
 python -m opencc_jieba_pyo3 convert -i input.txt -o output.txt -c s2t --punct
+opencc-jieba-pyo3 convert -i input.txt -o output.txt -c s2t --punct
 python -m opencc_jieba_pyo3 segment -i input.txt -o output.txt --delim "/"
+opencc-jieba-pyo3 segment -i input.txt -o output.txt --delim "/"
 ```
+
+---
 
 ## API
 
@@ -213,6 +225,8 @@ Unified Python interface for OpenCC and Jieba functionalities.
 
 [opencc-jieba-rs](https://github.com/laisuk/opencc-jieba-rs) : A Rust implementation of Jieba + OpenCC
 
+---
+
 ## Benchmarks
 
 ```
@@ -243,10 +257,12 @@ Processor: Intel64 Family 6 Model 191 Stepping 2, GenuineIntel
 
 ![ThroughputSizeChart](https://raw.githubusercontent.com/laisuk/opencc_jieba_pyo3/master/assets/throughput_vs_size.png)
 
+---
+
 ## License
 
 [MIT](https://github.com/laisuk/opencc_jieba_pyo3/blob/master/LICENSE)
 
 ---
 
-Powered by Rust, Jieba, PyO3, OpenCC and opencc-jieba-rs.
+Powered by **Rust**, **Jieba**, **PyO3**, **OpenCC** and **opencc-jieba-rs**.
