@@ -16,8 +16,8 @@ crate-type = ["cdylib"]
 [dependencies]
 pyo3 = { version = "0.25.1", features = ["extension-module", "abi3-py38"]}
 #opencc-jieba-rs = { path = "../opencc-jieba-rs" }
-opencc-jieba-rs = { git = "https://github.com/laisuk/opencc-jieba-rs.git", branch = "master" }
-#opencc-jieba-rs = "0.6.0"
+#opencc-jieba-rs = { git = "https://github.com/laisuk/opencc-jieba-rs.git", branch = "master" }
+opencc-jieba-rs = "0.6.0"
 
 [package.metadata.maturin]
 name = "opencc_jieba_pyo3"
