@@ -176,7 +176,7 @@ def main():
     parser_office.add_argument('--auto-ext', action='store_true', default=False,
                                 help='Auto-append extension to output file')
     parser_office.add_argument('--keep-font', action='store_true', default=False,
-                                help='Preserve font-family information in Office content)')
+                                help='Preserve font-family information in Office content')
     parser_office.set_defaults(func=subcommand_office)
 
     args = parser.parse_args()
