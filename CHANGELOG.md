@@ -9,7 +9,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 ## [0.6.0] 2025-07-12
 
 ### Added
-- Office and Epub documents support in Chines text conversion.
+- Add Office and Epub documents support in Chinese text conversion.
 
 ### Changed
 - Update opencc-jieba-rs to v0.6.0
