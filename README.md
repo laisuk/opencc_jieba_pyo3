@@ -105,6 +105,10 @@ print(kw_weights_tfidf)  # [('春眠', 2.34), ('啼鸟', 1.56), ('处处', 1.12)
 ### CLI
 
 You can also use the CLI interface via Python module or Python script:  
+Features are:
+- `convert`: Convert Chinese text using OpenCC + Jieba
+- `segment`: Segment Chinese text using Jieba
+- `office`: Convert Office document Chinese text using OpenCC + Jieba
 
 #### convert
 
@@ -142,11 +146,33 @@ options:
   --out-enc <encoding>  Encoding for output
 ```
 
+#### office
+
+```
+ python -m opencc_jieba_pyo3 office --help                                                     
+usage: opencc_jieba_pyo3 office [-h] [-i <file>] [-o <file>] [-c <conversion>] [-p] [-f <format>] [--auto-ext] [--keep-font]
+
+options:
+  -h, --help            show this help message and exit
+  -i, --input <file>    Input Office document from <file>.
+  -o, --output <file>   Output Office document to <file>.
+  -c, --config <conversion>
+                        conversion: s2t|s2tw|s2twp|s2hk|t2s|tw2s|tw2sp|hk2s|jp2t|t2jp
+  -p, --punct           Punctuation conversion
+  -f, --format <format>
+                        Target Office format (e.g., docx, xlsx, pptx, odt, ods, odp, epub)
+  --auto-ext            Auto-append extension to output file
+  --keep-font           Preserve font-family information in Office content)
+```
 ```sh
 python -m opencc_jieba_pyo3 convert -i input.txt -o output.txt -c s2t --punct
 opencc-jieba-pyo3 convert -i input.txt -o output.txt -c s2t --punct
+
 python -m opencc_jieba_pyo3 segment -i input.txt -o output.txt --delim "/"
 opencc-jieba-pyo3 segment -i input.txt -o output.txt --delim "/"
+
+python -m opencc_jieba_pyo3 office -i input.docx -o output.docx -c s2t --punct --keep-font
+opencc-jieba-pyo3 office -i input.epub -o output.epub -c s2tw --punct
 ```
 
 ---
