@@ -6,7 +6,11 @@
 [![License](https://img.shields.io/github/license/laisuk/opencc_jieba_pyo3)](https://github.com/laisuk/opencc_jieba_pyo3/blob/main/LICENSE)
 [![Build Status](https://github.com/laisuk/opencc_jieba_pyo3/actions/workflows/build.yml/badge.svg)](https://github.com/laisuk/opencc_jieba_pyo3/actions/workflows/build.yml)
 
-`opencc_jieba_pyo3` is a Python extension module powered by [Rust](https://www.rust-lang.org/), [Jieba](https://github.com/fxsjy/jieba) and [PyO3](https://pyo3.rs/), providing fast and accurate conversion between different Chinese text variants using [opencc-jieba-rs](https://github.com/laisuk/opencc-jieba-rs) and [OpenCC](https://github.com/BYVoid/OpenCC) algorithms.
+`opencc_jieba_pyo3` is a Python extension module powered
+by [Rust](https://www.rust-lang.org/), [Jieba](https://github.com/fxsjy/jieba) and [PyO3](https://pyo3.rs/), providing
+fast and accurate conversion between different Chinese text variants
+using [opencc-jieba-rs](https://github.com/laisuk/opencc-jieba-rs) and [OpenCC](https://github.com/BYVoid/OpenCC)
+algorithms.
 
 ## Features
 
@@ -59,7 +63,8 @@ Or for development:
 maturin develop -r
 ```
 
-See [BUILD.md](https://github.com/laisuk/opencc_jieba_pyo3/blob/master/BUILD.md) for detailed build and install instructions.
+See [BUILD.md](https://github.com/laisuk/opencc_jieba_pyo3/blob/master/BUILD.md) for detailed build and install
+instructions.
 
 ---
 
@@ -106,6 +111,7 @@ print(kw_weights_tfidf)  # [('春眠', 2.34), ('啼鸟', 1.56), ('处处', 1.12)
 
 You can also use the CLI interface via Python module or Python script:  
 Features are:
+
 - `convert`: Convert Chinese text using OpenCC + Jieba
 - `segment`: Segment Chinese text using Jieba
 - `office`: Convert Office document Chinese text using OpenCC + Jieba
@@ -149,7 +155,7 @@ options:
 #### office
 
 ```
- python -m opencc_jieba_pyo3 office --help                                                     
+python -m opencc_jieba_pyo3 office --help                                                     
 usage: opencc_jieba_pyo3 office [-h] [-i <file>] [-o <file>] [-c <conversion>] [-p] [-f <format>] [--auto-ext] [--keep-font]
 
 options:
@@ -164,6 +170,7 @@ options:
   --auto-ext            Auto-append extension to output file
   --keep-font           Preserve font-family information in Office content)
 ```
+
 ```sh
 python -m opencc_jieba_pyo3 convert -i input.txt -o output.txt -c s2t --punct
 opencc-jieba-pyo3 convert -i input.txt -o output.txt -c s2t --punct
@@ -244,8 +251,10 @@ Unified Python interface for OpenCC and Jieba functionalities.
 ## Development
 
 - Rust source: [src/lib.rs](https://github.com/laisuk/opencc_jieba_pyo3/blob/master/src/lib.rs)
-- Python bindings: [/opencc_jieba_pyo3/__init__.py](https://github.com/laisuk/opencc_jieba_pyo3/blob/master/opencc_jieba_pyo3/__init__.py), [opencc_jieba_pyo3/opencc_jieba_pyo3.pyi](https://github.com/laisuk/opencc_jieba_pyo3/blob/master/opencc_jieba_pyo3/opencc_jieba_pyo3.pyi)
-- CLI: [opencc_jieba_pyo3/__main__.py](https://github.com/laisuk/opencc_jieba_pyo3/blob/master/opencc_jieba_pyo3/__main__.py)
+- Python bindings: [/opencc_jieba_pyo3/__init
+  __.py](https://github.com/laisuk/opencc_jieba_pyo3/blob/master/opencc_jieba_pyo3/__init__.py), [opencc_jieba_pyo3/opencc_jieba_pyo3.pyi](https://github.com/laisuk/opencc_jieba_pyo3/blob/master/opencc_jieba_pyo3/opencc_jieba_pyo3.pyi)
+- CLI: [opencc_jieba_pyo3/__main
+  __.py](https://github.com/laisuk/opencc_jieba_pyo3/blob/master/opencc_jieba_pyo3/__main__.py)
 
 ## Rust Module Required
 
@@ -264,20 +273,20 @@ Processor: Intel64 Family 6 Model 191 Stepping 2, GenuineIntel
 
 ### BENCHMARK RESULTS
 
-| Method           | Config | TextSize |        Mean |      StdDev |         Min |         Max | Ops/sec |  Chars/sec |
-|:-----------------|--------|---------:|------------:|------------:|------------:|------------:|--------:|-----------:|
-| Convert_Small    | s2t    |      100 |    0.161 ms |    0.109 ms |    0.080 ms |    0.794 ms |   6,217 |    621,740 |
-| Convert_Medium   | s2t    |    1,000 |    0.389 ms |    0.092 ms |    0.286 ms |    0.829 ms |   2,571 |  2,571,236 |
-| Convert_Large    | s2t    |   10,000 |    1.261 ms |    0.314 ms |    1.072 ms |    2.580 ms |     793 |  7,932,120 |
-| Convert_XLarge   | s2t    |  100,000 |    7.290 ms |    0.464 ms |    6.864 ms |    9.848 ms |     137 | 13,716,798 |
-| Convert_Small    | s2tw   |      100 |    0.189 ms |    0.104 ms |    0.103 ms |    0.620 ms |   5,285 |    528,519 |
-| Convert_Medium   | s2tw   |    1,000 |    0.442 ms |    0.152 ms |    0.322 ms |    1.084 ms |   2,264 |  2,264,206 |
-| Convert_Large    | s2tw   |   10,000 |    1.508 ms |    0.200 ms |    1.367 ms |    2.371 ms |     663 |  6,631,682 |
-| Convert_XLarge   | s2tw   |  100,000 |    9.403 ms |    0.585 ms |    9.009 ms |   13.320 ms |     106 | 10,635,363 |
-| Convert_Small    | s2twp  |      100 |    0.235 ms |    0.113 ms |    0.129 ms |    0.648 ms |   4,256 |    425,586 |
-| Convert_Medium   | s2twp  |    1,000 |    0.518 ms |    0.112 ms |    0.363 ms |    0.913 ms |   1,932 |  1,932,266 |
-| Convert_Large    | s2twp  |   10,000 |    1.786 ms |    0.209 ms |    1.590 ms |    2.739 ms |     560 |  5,598,571 |
-| Convert_XLarge   | s2twp  |  100,000 |   11.644 ms |    0.979 ms |   10.892 ms |   17.130 ms |      86 |  8,588,034 |
+| Method         | Config | TextSize |      Mean |   StdDev |       Min |       Max | Ops/sec |  Chars/sec |
+|:---------------|--------|---------:|----------:|---------:|----------:|----------:|--------:|-----------:|
+| Convert_Small  | s2t    |      100 |  0.161 ms | 0.109 ms |  0.080 ms |  0.794 ms |   6,217 |    621,740 |
+| Convert_Medium | s2t    |    1,000 |  0.389 ms | 0.092 ms |  0.286 ms |  0.829 ms |   2,571 |  2,571,236 |
+| Convert_Large  | s2t    |   10,000 |  1.261 ms | 0.314 ms |  1.072 ms |  2.580 ms |     793 |  7,932,120 |
+| Convert_XLarge | s2t    |  100,000 |  7.290 ms | 0.464 ms |  6.864 ms |  9.848 ms |     137 | 13,716,798 |
+| Convert_Small  | s2tw   |      100 |  0.189 ms | 0.104 ms |  0.103 ms |  0.620 ms |   5,285 |    528,519 |
+| Convert_Medium | s2tw   |    1,000 |  0.442 ms | 0.152 ms |  0.322 ms |  1.084 ms |   2,264 |  2,264,206 |
+| Convert_Large  | s2tw   |   10,000 |  1.508 ms | 0.200 ms |  1.367 ms |  2.371 ms |     663 |  6,631,682 |
+| Convert_XLarge | s2tw   |  100,000 |  9.403 ms | 0.585 ms |  9.009 ms | 13.320 ms |     106 | 10,635,363 |
+| Convert_Small  | s2twp  |      100 |  0.235 ms | 0.113 ms |  0.129 ms |  0.648 ms |   4,256 |    425,586 |
+| Convert_Medium | s2twp  |    1,000 |  0.518 ms | 0.112 ms |  0.363 ms |  0.913 ms |   1,932 |  1,932,266 |
+| Convert_Large  | s2twp  |   10,000 |  1.786 ms | 0.209 ms |  1.590 ms |  2.739 ms |     560 |  5,598,571 |
+| Convert_XLarge | s2twp  |  100,000 | 11.644 ms | 0.979 ms | 10.892 ms | 17.130 ms |      86 |  8,588,034 |
 
 ### Throughput VS Size
 
