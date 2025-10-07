@@ -1,6 +1,7 @@
 from python.opencc_jieba_pyo3 import OpenCC
 
 text = "“春眠不觉晓，处处闻啼鸟。夜来风雨声，花落知多少”"
+# text = "这是一个用于关键词提取的测试文本"
 # text = "潦水盡而寒潭清，煙光凝而暮山紫。儼驂騑於上路，訪風景於崇阿；臨帝子之長洲，得天人之舊館。"
 opencc = OpenCC()
 print(f"Original text: {text}")
