@@ -14,10 +14,20 @@ name = "opencc_jieba_pyo3"
 crate-type = ["cdylib"]
 
 [dependencies]
-pyo3 = { version = "0.27.1", features = ["extension-module", "abi3-py38"]}
+pyo3 = { version = "=0.27.2", features = ["abi3-py38"]}
 #opencc-jieba-rs = { path = "../opencc-jieba-rs" }
-opencc-jieba-rs = { git = "https://github.com/laisuk/opencc-jieba-rs.git", branch = "master" }
-#opencc-jieba-rs = "0.7.2"
+#opencc-jieba-rs = { git = "https://github.com/laisuk/opencc-jieba-rs.git", branch = "master" }
+opencc-jieba-rs = "0.7.2"
+#include-flate = "=0.3.0"
+#libflate = "=2.1.0"
+
+[features]
+default = []
+
+# Enable only when building a Python extension module (e.g. via maturin).
+# Do NOT enable by default: `cargo test` builds a standalone executable
+# which must link against libpython and will fail in extension-module mode (Linux).
+extension-module = ["pyo3/extension-module"]
 
 [package.metadata.maturin]
 name = "opencc_jieba_pyo3"
