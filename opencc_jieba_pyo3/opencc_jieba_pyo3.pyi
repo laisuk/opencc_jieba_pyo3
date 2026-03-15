@@ -1,6 +1,4 @@
 from typing import List, Tuple
-
-
 class OpenCC:
     """
     Python binding for OpenCC and Jieba functionalities.
@@ -15,7 +13,6 @@ class OpenCC:
     Attributes:
         config (str): Current OpenCC config string.
     """
-
     def __init__(self, config: str) -> None:
         """
         Initialize a new OpenCC instance.
@@ -62,6 +59,53 @@ class OpenCC:
 
         Returns:
             list[str]: List of segmented words.
+        """
+        ...
+
+    def jieba_cut_for_search(self, input_text: str, hmm: bool) -> List[str]:
+        """
+        Segment Chinese text using Jieba search mode.
+
+        This mode is suitable for search indexing and may return
+        finer-grained tokens than normal cut mode.
+
+        Args:
+            input_text (str): Input text.
+            hmm (bool): Whether to use HMM for new words.
+
+        Returns:
+            list[str]: List of segmented words.
+        """
+        ...
+
+    def jieba_cut_all(self, input_text: str) -> List[str]:
+        """
+        Segment Chinese text using Jieba full mode.
+
+        This mode attempts to cut out all possible words in the sentence.
+
+        Args:
+            input_text (str): Input text.
+
+        Returns:
+            list[str]: List of segmented words.
+        """
+        ...
+
+    def jieba_tag(self, input_text: str, hmm: bool) -> List[Tuple[str, str]]:
+        """
+        Perform Jieba part-of-speech tagging.
+
+        Args:
+            input_text (str): Input text.
+            hmm (bool): Whether to use HMM for new words.
+
+        Returns:
+            list[tuple[str, str]]: List of (word, tag) tuples.
+
+        Example:
+            >>> cc.jieba_tag("我来到北京清华大学", True)
+            [('我', 'r'), ('来到', 'v'), ('北京', 'ns'), ('清华大学', 'nt')]
         """
         ...
 

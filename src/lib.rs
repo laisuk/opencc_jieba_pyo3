@@ -89,6 +89,46 @@ impl OpenCC {
         self.opencc.jieba_cut(input_text, hmm)
     }
 
+    /// Segment Chinese text using Jieba search mode.
+    ///
+    /// This mode is suitable for search engine indexing and may return
+    /// finer-grained tokens than normal cut mode.
+    ///
+    /// # Arguments
+    /// * `input_text` - Input text
+    /// * `hmm` - Whether to use HMM for new words
+    ///
+    /// # Returns
+    /// List of segmented words.
+    fn jieba_cut_for_search(&self, input_text: &str, hmm: bool) -> Vec<String> {
+        self.opencc.jieba_cut_for_search(input_text, hmm)
+    }
+
+    /// Segment Chinese text using Jieba full mode.
+    ///
+    /// This mode attempts to cut out all possible words in the sentence.
+    ///
+    /// # Arguments
+    /// * `input_text` - Input text
+    ///
+    /// # Returns
+    /// List of segmented words.
+    fn jieba_cut_all(&self, input_text: &str) -> Vec<String> {
+        self.opencc.jieba_cut_all(input_text)
+    }
+
+    /// Perform Jieba part-of-speech tagging.
+    ///
+    /// # Arguments
+    /// * `input_text` - Input text
+    /// * `hmm` - Whether to use HMM for new words
+    ///
+    /// # Returns
+    /// A list of `(word, tag)` tuples.
+    fn jieba_tag(&self, input_text: &str, hmm: bool) -> Vec<(String, String)> {
+        self.opencc.jieba_tag(input_text, hmm)
+    }
+
     /// Segment and join Chinese text using Jieba.
     ///
     /// # Arguments

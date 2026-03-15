@@ -47,14 +47,33 @@ def main() -> None:
     reconverted = opencc.convert(converted, True)
     print(f"Reconvert {opencc.config}: {reconverted}")
 
-    # Jieba features
-    cut_text = opencc.jieba_cut(text)
+    print("\n=== Jieba Segmentation ===")
+
+    hmm = True
+
+    cut_text = opencc.jieba_cut(text, hmm)
     print(f"Cut text: {cut_text}")
+
+    cut_search = opencc.jieba_cut_for_search(text, hmm)
+    print(f"Cut for search: {cut_search}")
+
+    cut_all = opencc.jieba_cut_all(text)
+    print(f"Cut all: {cut_all}")
 
     join_text = opencc.jieba_cut_and_join(text)
     print(f"Joined text: {join_text}")
 
+    print("\n=== Jieba POS Tagging ===")
+
+    tags = opencc.jieba_tag(text, hmm)
+    print("Tags:")
+    for word, tag in tags:
+        print(f"  {word}/{tag}")
+
+    print("\n=== Keyword Extraction ===")
+
     top_k = 5
+
     keywords_textrank = opencc.jieba_keyword_extract_textrank(text, top_k)
     print(f"Keywords TextRank (top {top_k}): {keywords_textrank}")
 
