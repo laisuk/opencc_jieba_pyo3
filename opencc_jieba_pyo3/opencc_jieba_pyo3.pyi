@@ -104,7 +104,7 @@ class OpenCC:
             list[tuple[str, str]]: List of (word, tag) tuples.
 
         Example:
-            >>> OpenCC.jieba_tag("我来到北京清华大学", True)
+            >>> OpenCC().jieba_tag("我来到北京清华大学", True)
             [('我', 'r'), ('来到', 'v'), ('北京', 'ns'), ('清华大学', 'nt')]
         """
         ...
