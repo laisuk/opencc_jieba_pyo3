@@ -6,6 +6,14 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ---
 
+## [0.7.3] - 2026-03-17
+
+### Changed
+
+- Update opencc-jieba-rs to v0.7.3
+
+---
+
 ## [0.7.2] - 2025-11.07
 
 ### Changed

@@ -68,6 +68,39 @@ class OpenCC(_OpenCC):
         """
         return super().jieba_cut(input_text, hmm)
 
+    def jieba_cut_for_search(self, input_text: str, hmm: bool = True) -> List[str]:
+        """
+        Perform search-mode segmentation on the input text using Jieba.
+
+        Search mode generates finer-grained tokens suitable for search indexing.
+
+        :param input_text: The input string to segment.
+        :param hmm: Whether to enable the Hidden Markov Model (HMM) for new word discovery.
+        :return: A list of segmented words.
+        """
+        return super().jieba_cut_for_search(input_text, hmm)
+
+    def jieba_cut_all(self, input_text: str) -> List[str]:
+        """
+        Perform full-mode segmentation on the input text using Jieba.
+
+        Full mode returns all possible word segments without disambiguation.
+
+        :param input_text: The input string to segment.
+        :return: A list of segmented words.
+        """
+        return super().jieba_cut_all(input_text)
+
+    def jieba_tag(self, input_text: str, hmm: bool = True) -> List[tuple[str, str]]:
+        """
+        Perform part-of-speech tagging on the input text using Jieba.
+
+        :param input_text: The input string to analyze.
+        :param hmm: Whether to enable the Hidden Markov Model (HMM) for new word discovery.
+        :return: A list of (word, tag) tuples.
+        """
+        return super().jieba_tag(input_text, hmm)
+
     def jieba_cut_and_join(self, input_text: str, delimiter: str = "/") -> str:
         """
         Perform word segmentation and join the words with a custom delimiter.
@@ -78,7 +111,7 @@ class OpenCC(_OpenCC):
         """
         return super().jieba_cut_and_join(input_text, delimiter)
 
-    def jieba_keyword_extract_textrank(self, input_text: str, top_k: int) -> List[str]:
+    def jieba_keyword_extract_textrank(self, input_text: str, top_k: int = 10) -> List[str]:
         """
         Extract top keywords using the TextRank algorithm.
 
@@ -88,7 +121,7 @@ class OpenCC(_OpenCC):
         """
         return super().jieba_keyword_extract_textrank(input_text, top_k)
 
-    def jieba_keyword_extract_tfidf(self, input_text: str, top_k: int) -> List[str]:
+    def jieba_keyword_extract_tfidf(self, input_text: str, top_k: int = 10) -> List[str]:
         """
         Extract top keywords using the TF-IDF algorithm.
 
@@ -98,7 +131,7 @@ class OpenCC(_OpenCC):
         """
         return super().jieba_keyword_extract_tfidf(input_text, top_k)
 
-    def jieba_keyword_weight_textrank(self, input_text: str, top_k: int) -> List[Tuple[str, float]]:
+    def jieba_keyword_weight_textrank(self, input_text: str, top_k: int = 10) -> List[Tuple[str, float]]:
         """
         Extract top keywords with their weights using the TextRank algorithm.
 
@@ -108,7 +141,7 @@ class OpenCC(_OpenCC):
         """
         return super().jieba_keyword_weight_textrank(input_text, top_k)
 
-    def jieba_keyword_weight_tfidf(self, input_text: str, top_k: int) -> List[Tuple[str, float]]:
+    def jieba_keyword_weight_tfidf(self, input_text: str, top_k: int = 10) -> List[Tuple[str, float]]:
         """
         Extract top keywords with their weights using the TF-IDF algorithm.
 

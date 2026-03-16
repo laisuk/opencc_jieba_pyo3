@@ -44,7 +44,24 @@ def subcommand_segment(args):
     with io.open(args.input if args.input else 0, encoding=args.in_enc) as f:
         input_str = f.read()
 
-    segments = opencc.jieba_cut(input_str)
+    mode = args.mode
+    if mode == "cut":
+        segments = opencc.jieba_cut(input_str)
+    elif mode == "search":
+        segments = opencc.jieba_cut_for_search(input_str)
+    elif mode == "full":
+        # Prefer explicit full-mode API if your binding exposes one
+        if hasattr(opencc, "jieba_cut_all"):
+            segments = opencc.jieba_cut_all(input_str)
+        elif hasattr(opencc, "jieba_cut_full"):
+            segments = opencc.jieba_cut_full(input_str)
+        else:
+            print("❌  Full mode is not available in this build of opencc_jieba_pyo3.", file=sys.stderr)
+            return 1
+    else:
+        print(f"❌  Invalid segmentation mode: {mode}", file=sys.stderr)
+        return 1
+
     delim = args.delim if args.delim is not None else " "
     output_str = delim.join(segments)
 
@@ -54,7 +71,7 @@ def subcommand_segment(args):
     in_from = args.input if args.input else "<stdin>"
     out_to = args.output if args.output else "<stdout>"
     if sys.stderr.isatty():
-        print(f"Segmentation completed: {in_from} -> {out_to}", file=sys.stderr)
+        print(f"Segmentation completed ({mode}): {in_from} -> {out_to}", file=sys.stderr)
     return 0
 
 
@@ -84,8 +101,7 @@ def subcommand_office(args):
         input_name = os.path.splitext(os.path.basename(input_file))[0]
         input_ext = os.path.splitext(os.path.basename(input_file))[1]
         input_dir = os.path.dirname(input_file) or os.getcwd()
-        ext = f".{office_format}" if auto_ext and office_format and office_format in OFFICE_FORMATS else \
-            input_ext
+        ext = f".{office_format}" if auto_ext and office_format and office_format in OFFICE_FORMATS else input_ext
         output_file = os.path.join(input_dir, f"{input_name}_converted{ext}")
         print(f"ℹ️  Output file not specified. Using: {output_file}", file=sys.stderr)
 
@@ -132,7 +148,7 @@ def main():
     subparsers = parser.add_subparsers(dest='command', required=True)
 
     # Convert subcommand
-    parser_convert = subparsers.add_parser('convert', help='Convert Chinese text using OpenCC + Jieba')
+    parser_convert = subparsers.add_parser('convert', formatter_class=argparse.ArgumentDefaultsHelpFormatter, help='Convert Chinese text using OpenCC + Jieba')
     parser_convert.add_argument('-i', '--input', metavar='<file>',
                                 help='Read original text from <file>.')
     parser_convert.add_argument('-o', '--output', metavar='<file>',
@@ -148,13 +164,15 @@ def main():
     parser_convert.set_defaults(func=subcommand_convert)
 
     # Segment subcommand
-    parser_segment = subparsers.add_parser('segment', help='Segment Chinese text using Jieba')
+    parser_segment = subparsers.add_parser('segment', formatter_class=argparse.ArgumentDefaultsHelpFormatter, help='Segment Chinese text using Jieba')
     parser_segment.add_argument('-i', '--input', metavar='<file>',
                                 help='Read input text from <file>.')
     parser_segment.add_argument('-o', '--output', metavar='<file>',
                                 help='Write segmented text to <file>.')
     parser_segment.add_argument('-d', '--delim', metavar='<char>', default=' ',
                                 help='Delimiter to join segments')
+    parser_segment.add_argument('--mode', choices=['cut', 'search', 'full'], default='cut',
+                                help='Segmentation mode')
     parser_segment.add_argument('--in-enc', metavar='<encoding>', default='UTF-8',
                                 help='Encoding for input')
     parser_segment.add_argument('--out-enc', metavar='<encoding>', default='UTF-8',
@@ -162,21 +180,21 @@ def main():
     parser_segment.set_defaults(func=subcommand_segment)
 
     # Office subcommand
-    parser_office = subparsers.add_parser('office', help='Convert Office document Chinese text using OpenCC + Jieba')
+    parser_office = subparsers.add_parser('office', formatter_class=argparse.ArgumentDefaultsHelpFormatter, help='Convert Office document Chinese text using OpenCC + Jieba')
     parser_office.add_argument('-i', '--input', metavar='<file>',
-                                help='Input Office document from <file>.')
+                               help='Input Office document from <file>.')
     parser_office.add_argument('-o', '--output', metavar='<file>',
-                                help='Output Office document to <file>.')
+                               help='Output Office document to <file>.')
     parser_office.add_argument('-c', '--config', metavar='<conversion>',
-                                help='conversion: s2t|s2tw|s2twp|s2hk|t2s|tw2s|tw2sp|hk2s|jp2t|t2jp')
+                               help='conversion: s2t|s2tw|s2twp|s2hk|t2s|tw2s|tw2sp|hk2s|jp2t|t2jp')
     parser_office.add_argument('-p', '--punct', action='store_true', default=False,
-                                help='Punctuation conversion')
+                               help='Punctuation conversion')
     parser_office.add_argument('-f', '--format', metavar='<format>',
-                                help='Target Office format (e.g., docx, xlsx, pptx, odt, ods, odp, epub)')
+                               help='Target Office format (e.g., docx, xlsx, pptx, odt, ods, odp, epub)')
     parser_office.add_argument('--auto-ext', action='store_true', default=False,
-                                help='Auto-append extension to output file')
+                               help='Auto-append extension to output file')
     parser_office.add_argument('--keep-font', action='store_true', default=False,
-                                help='Preserve font-family information in Office content')
+                               help='Preserve font-family information in Office content')
     parser_office.set_defaults(func=subcommand_office)
 
     args = parser.parse_args()
