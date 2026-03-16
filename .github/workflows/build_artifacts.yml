@@ -1,0 +1,177 @@
+name: Build artifacts (manual)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build wheels (${{ matrix.name }})
+    runs-on: ${{ matrix.os }}
+    permissions:
+      contents: read
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # -------------------------
+          # Normal wheels
+          # -------------------------
+          - name: windows-x64
+            os: windows-latest
+            py: "3.10"
+            is_win7: false
+            maturin_args: >-
+              --release
+              --interpreter python3.10
+
+          - name: windows-arm64
+            os: windows-latest
+            py: "3.10"
+            is_win7: false
+            rust_target: aarch64-pc-windows-msvc
+            maturin_args: >-
+              --release
+              --interpreter python3.10
+              --features gen-import-lib
+
+          - name: linux-x64
+            os: ubuntu-latest
+            py: "3.10"
+            is_win7: false
+            maturin_args: >-
+              --release
+              --interpreter python3.10
+
+          - name: linux-arm64
+            os: ubuntu-24.04-arm
+            py: "3.10"
+            is_win7: false
+            maturin_args: >-
+              --release
+              --interpreter python3.10
+
+          - name: macos-x64
+            os: macos-15-intel
+            py: "3.10"
+            is_win7: false
+            maturin_args: >-
+              --release
+              --interpreter python3.10
+              --target x86_64-apple-darwin
+
+          - name: macos-arm64
+            os: macos-latest
+            py: "3.10"
+            is_win7: false
+            maturin_args: >-
+              --release
+              --interpreter python3.10
+              --target aarch64-apple-darwin
+
+          # -------------------------
+          # Win7-x64-compatible wheel (artifact-only)
+          # -------------------------
+          - name: windows-win7-x64
+            os: windows-latest
+            py: "3.10"
+            is_win7: true
+            rust_target: x86_64-win7-windows-msvc
+            maturin_args: >-
+              --release
+              --interpreter python3.10
+              -Z build-std=std,panic_abort
+
+          # -------------------------
+          # Win7-x86-compatible wheel (artifact-only)
+          # -------------------------
+          - name: windows-win7-x86
+            os: windows-latest
+            py: "3.8"
+            py_arch: "x86"
+            is_win7: true
+            rust_target: i686-win7-windows-msvc
+            maturin_args: >-
+              --release
+              --interpreter python3.8-32
+              -Z build-std=std,panic_abort
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Set up Python (normal)
+        if: ${{ !(runner.os == 'Windows' && matrix.name == 'windows-win7-x86') }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.py }}
+
+      - name: Set up Python (Win7 x86 needs 3.8 x86)
+        if: ${{ runner.os == 'Windows' && matrix.name == 'windows-win7-x86' }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.8"
+          architecture: "x86"
+
+      - name: Add Windows ARM64 Rust target
+        if: ${{ matrix.name == 'windows-arm64' }}
+        run: rustup target add aarch64-pc-windows-msvc
+
+      # Win7 needs nightly + rust-src for -Z build-std
+      - name: Set Rust (nightly + rust-src) for Win7
+        if: ${{ matrix.is_win7 }}
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: nightly
+          components: rust-src
+
+      - name: Build wheels (Win7 via maturin-action, no --target)
+        if: ${{ runner.os == 'Windows' && matrix.is_win7 }}
+        uses: PyO3/maturin-action@v1
+        env:
+          RUSTUP_TOOLCHAIN: nightly
+          RUSTFLAGS: -C link-arg=/SUBSYSTEM:CONSOLE,6.01
+          CARGO_BUILD_TARGET: ${{ matrix.rust_target }}
+        with:
+          command: build
+          args: ${{ matrix.maturin_args }}
+
+      - name: Build wheels (linux-x64 manylinux2014)
+        if: ${{ matrix.name == 'linux-x64' }}
+        uses: PyO3/maturin-action@v1
+        with:
+          command: build
+          manylinux: 2014
+          target: x86_64
+          args: ${{ matrix.maturin_args }}
+
+      - name: Build wheels (linux-arm64 manylinux2014)
+        if: ${{ matrix.name == 'linux-arm64' }}
+        uses: PyO3/maturin-action@v1
+        with:
+          command: build
+          manylinux: 2014
+          target: aarch64
+          args: ${{ matrix.maturin_args }}
+
+      - name: Build wheels (Windows ARM64)
+        if: ${{ matrix.name == 'windows-arm64' }}
+        uses: PyO3/maturin-action@v1
+        env:
+          CARGO_BUILD_TARGET: aarch64-pc-windows-msvc
+        with:
+          command: build
+          args: ${{ matrix.maturin_args }}
+
+      - name: Build wheels (normal)
+        if: ${{ matrix.is_win7 != true && !startsWith(matrix.name, 'linux-') && matrix.name != 'windows-arm64' }}
+        uses: PyO3/maturin-action@v1
+        with:
+          command: build
+          args: ${{ matrix.maturin_args }}
+
+      - name: Upload wheel artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: wheels-${{ matrix.name }}
+          path: target/wheels/*.whl
