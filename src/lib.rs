@@ -150,7 +150,8 @@ impl OpenCC {
     /// # Returns
     /// List of keywords.
     fn jieba_keyword_extract_textrank(&self, input_text: &str, top_k: i32) -> Vec<String> {
-        self.opencc.keyword_extract_textrank(input_text, top_k as usize)
+        self.opencc
+            .keyword_extract_textrank(input_text, top_k as usize)
     }
 
     /// Extract keywords using TF-IDF algorithm.
@@ -162,7 +163,8 @@ impl OpenCC {
     /// # Returns
     /// List of keywords.
     fn jieba_keyword_extract_tfidf(&self, input_text: &str, top_k: i32) -> Vec<String> {
-        self.opencc.keyword_extract_tfidf(input_text, top_k as usize)
+        self.opencc
+            .keyword_extract_tfidf(input_text, top_k as usize)
     }
 
     /// Extract keywords and their weights using TextRank.
@@ -174,8 +176,11 @@ impl OpenCC {
     /// # Returns
     /// List of (keyword, weight) tuples.
     fn jieba_keyword_weight_textrank(&self, input_text: &str, top_k: i32) -> Vec<(String, f64)> {
-        let keywords = self.opencc.keyword_weight_textrank(input_text, top_k as usize);
-        keywords.into_iter()
+        let keywords = self
+            .opencc
+            .keyword_weight_textrank(input_text, top_k as usize);
+        keywords
+            .into_iter()
             .map(|keyword| (keyword.keyword, keyword.weight))
             .collect()
     }
@@ -190,7 +195,8 @@ impl OpenCC {
     /// List of (keyword, weight) tuples.
     fn jieba_keyword_weight_tfidf(&self, input_text: &str, top_k: i32) -> Vec<(String, f64)> {
         let keywords = self.opencc.keyword_weight_tfidf(input_text, top_k as usize);
-        keywords.into_iter()
+        keywords
+            .into_iter()
             .map(|keyword| (keyword.keyword, keyword.weight))
             .collect()
     }

@@ -148,7 +148,8 @@ def main():
     subparsers = parser.add_subparsers(dest='command', required=True)
 
     # Convert subcommand
-    parser_convert = subparsers.add_parser('convert', formatter_class=argparse.ArgumentDefaultsHelpFormatter, help='Convert Chinese text using OpenCC + Jieba')
+    parser_convert = subparsers.add_parser('convert', formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+                                           help='Convert Chinese text using OpenCC + Jieba')
     parser_convert.add_argument('-i', '--input', metavar='<file>',
                                 help='Read original text from <file>.')
     parser_convert.add_argument('-o', '--output', metavar='<file>',
@@ -164,7 +165,8 @@ def main():
     parser_convert.set_defaults(func=subcommand_convert)
 
     # Segment subcommand
-    parser_segment = subparsers.add_parser('segment', formatter_class=argparse.ArgumentDefaultsHelpFormatter, help='Segment Chinese text using Jieba')
+    parser_segment = subparsers.add_parser('segment', formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+                                           help='Segment Chinese text using Jieba')
     parser_segment.add_argument('-i', '--input', metavar='<file>',
                                 help='Read input text from <file>.')
     parser_segment.add_argument('-o', '--output', metavar='<file>',
@@ -180,7 +182,8 @@ def main():
     parser_segment.set_defaults(func=subcommand_segment)
 
     # Office subcommand
-    parser_office = subparsers.add_parser('office', formatter_class=argparse.ArgumentDefaultsHelpFormatter, help='Convert Office document Chinese text using OpenCC + Jieba')
+    parser_office = subparsers.add_parser('office', formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+                                          help='Convert Office document Chinese text using OpenCC + Jieba')
     parser_office.add_argument('-i', '--input', metavar='<file>',
                                help='Input Office document from <file>.')
     parser_office.add_argument('-o', '--output', metavar='<file>',

@@ -1,4 +1,6 @@
 from typing import List, Tuple
+
+
 class OpenCC:
     """
     Python binding for OpenCC and Jieba functionalities.
@@ -13,6 +15,7 @@ class OpenCC:
     Attributes:
         config (str): Current OpenCC config string.
     """
+
     def __init__(self, config: str) -> None:
         """
         Initialize a new OpenCC instance.
