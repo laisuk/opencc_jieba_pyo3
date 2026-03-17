@@ -199,16 +199,23 @@ jobs:
         with:
           path: dist
 
-      - name: Merge wheels
+      - name: Build sdist
+        uses: PyO3/maturin-action@v1
+        with:
+          command: build
+          args: --release --sdist
+
+      - name: Merge wheels + sdist
         run: |
           mkdir -p final_dist
           find dist -name '*.whl' -exec mv {} final_dist/ \;
+          mv target/wheels/*.tar.gz final_dist/ || true
 
       - name: List final wheels
         run: |
           ls -la final_dist
 
-      - name: Publish wheels to PyPI
+      - name: Publish wheels + sdist to PyPI
         uses: PyO3/maturin-action@v1
         env:
           MATURIN_PYPI_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
@@ -216,4 +223,4 @@ jobs:
           command: upload
           args: >-
             --non-interactive
-            final_dist/*.whl
+            final_dist/*

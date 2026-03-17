@@ -7,6 +7,20 @@ license = "MIT"
 description = "High-performance Chinese text conversion, segmentation and keyword extraction powered by Rust, PyO3, OpenCC lexicons and Jieba."
 repository = "https://github.com/laisuk/opencc_jieba_pyo3"
 readme = "README.md"
+include = [
+    # Core
+    "/Cargo.toml",
+    "/pyproject.toml",
+    "/README.md",
+    "/LICENSE",
+
+    # Rust
+    "/src/**",
+
+    # Python bindings
+    "/opencc_jieba_pyo3/**/*.py",
+    "/opencc_jieba_pyo3/**/*.pyi",
+]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [lib]
