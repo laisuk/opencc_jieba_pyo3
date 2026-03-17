@@ -4,7 +4,7 @@ version = "0.7.3"
 edition = "2021"
 authors = ["laisuk <laisuk@yahoo.com>"]
 license = "MIT"
-description = "High-performance Chinese text conversion, segmentation, and keyword extraction powered by Rust, PyO3, OpenCC lexicons, and Jieba."
+description = "High-performance Chinese text conversion, segmentation and keyword extraction powered by Rust, PyO3, OpenCC lexicons and Jieba."
 repository = "https://github.com/laisuk/opencc_jieba_pyo3"
 readme = "README.md"
 
