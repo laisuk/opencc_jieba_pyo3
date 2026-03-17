@@ -3,50 +3,198 @@ name: Build and publish
 on:
   push:
     tags:
-      - 'v*.*.*'
+      - "v*"
 
 jobs:
   build:
-    name: Build wheels on ${{ matrix.os }}
+    name: Build wheels (${{ matrix.name }})
     runs-on: ${{ matrix.os }}
+    permissions:
+      contents: read
+
     strategy:
+      fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest, macos-15-intel]
+        include:
+          # -------------------------
+          # Windows 7 (x64) - nightly + build-std
+          # -------------------------
+          - name: windows-win7-x64
+            os: windows-latest
+            py: "3.10"
+            is_win7: true
+            rust_target: x86_64-win7-windows-msvc
+            maturin_args: >-
+              --release
+              --interpreter python3.10
+              -Z build-std=std,panic_abort
+
+          # -------------------------
+          # Windows 7 (x86) - nightly + build-std
+          # -------------------------
+          - name: windows-win7-x86
+            os: windows-latest
+            py: "3.8"
+            py_arch: "x86"
+            is_win7: true
+            rust_target: i686-win7-windows-msvc
+            maturin_args: >-
+              --release
+              --interpreter python3.8-32
+              -Z build-std=std,panic_abort
+
+          - name: windows-arm64
+            os: windows-latest
+            py: "3.10"
+            is_win7: false
+            rust_target: aarch64-pc-windows-msvc
+            maturin_args: >-
+              --release
+              --interpreter python3.10
+              --features gen-import-lib
+
+          # -------------------------
+          # Linux (x64) - manylinux
+          # -------------------------
+          - name: linux-x64
+            os: ubuntu-latest
+            py: "3.10"
+            is_win7: false
+            maturin_args: >-
+              --release
+              --interpreter python3.10
+
+          # -------------------------
+          # Linux (arm64) - manylinux
+          # -------------------------
+          - name: linux-arm64
+            os: ubuntu-24.04-arm
+            py: "3.10"
+            is_win7: false
+            maturin_args: >-
+              --release
+              --interpreter python3.10
+
+          # -------------------------
+          # macOS (x64)
+          # -------------------------
+          - name: macos-x64
+            os: macos-15-intel
+            py: "3.10"
+            is_win7: false
+            rust_target: x86_64-apple-darwin
+            maturin_args: >-
+              --release
+              --interpreter python3.10
+              --target x86_64-apple-darwin
+
+          # -------------------------
+          # macOS (arm64)
+          # -------------------------
+          - name: macos-arm64
+            os: macos-latest
+            py: "3.10"
+            is_win7: false
+            rust_target: aarch64-apple-darwin
+            maturin_args: >-
+              --release
+              --interpreter python3.10
+              --target aarch64-apple-darwin
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout source
+        uses: actions/checkout@v4
 
-      - name: Set up Python
+      - name: Set up Python (normal)
+        if: ${{ !(runner.os == 'Windows' && matrix.name == 'windows-win7-x86') }}
         uses: actions/setup-python@v5
         with:
-          python-version: '3.10'
+          python-version: ${{ matrix.py }}
 
-      - name: Install Rust (modernized)
-        uses: dtolnay/rust-toolchain@stable
+      - name: Set up Python (Win7 x86 needs 3.8 x86)
+        if: ${{ runner.os == 'Windows' && matrix.name == 'windows-win7-x86' }}
+        uses: actions/setup-python@v5
         with:
-          toolchain: stable
+          python-version: "3.8"
+          architecture: "x86"
 
-      - name: Install maturin
-        run: python -m pip install --upgrade pip maturin
+      - name: Add Windows ARM64 Rust target
+        if: ${{ matrix.name == 'windows-arm64' }}
+        run: rustup target add aarch64-pc-windows-msvc
 
-      - name: Build wheels
-        run: maturin build --release --interpreter python
+      # Win7 needs nightly + rust-src for -Z build-std
+      - name: Set Rust (nightly + rust-src) for Win7
+        if: ${{ runner.os == 'Windows' && matrix.is_win7 }}
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: nightly
+          components: rust-src
+
+      # Win7 wheel build (uses CARGO_BUILD_TARGET instead of --target)
+      - name: Build wheels (Windows 7 x64/x86)
+        if: ${{ runner.os == 'Windows' && matrix.is_win7 }}
+        uses: PyO3/maturin-action@v1
+        env:
+          RUSTUP_TOOLCHAIN: nightly
+          RUSTFLAGS: -C link-arg=/SUBSYSTEM:CONSOLE,6.01
+          CARGO_BUILD_TARGET: ${{ matrix.rust_target }}
+        with:
+          command: build
+          args: ${{ matrix.maturin_args }}
+
+      - name: Build wheels (linux-x64 manylinux2014)
+        if: ${{ matrix.name == 'linux-x64' }}
+        uses: PyO3/maturin-action@v1
+        with:
+          command: build
+          manylinux: 2014
+          target: x86_64
+          args: ${{ matrix.maturin_args }}
+
+      - name: Build wheels (linux-arm64 manylinux2014)
+        if: ${{ matrix.name == 'linux-arm64' }}
+        uses: PyO3/maturin-action@v1
+        with:
+          command: build
+          manylinux: 2014
+          target: aarch64
+          args: ${{ matrix.maturin_args }}
+
+      - name: Build wheels (Windows ARM64)
+        if: ${{ matrix.name == 'windows-arm64' }}
+        uses: PyO3/maturin-action@v1
+        env:
+          CARGO_BUILD_TARGET: aarch64-pc-windows-msvc
+        with:
+          command: build
+          args: ${{ matrix.maturin_args }}
+
+      # Normal build paths
+      - name: Build wheels (normal)
+        if: ${{ matrix.is_win7 != true && !startsWith(matrix.name, 'linux-') && matrix.name != 'windows-arm64' }}
+        uses: PyO3/maturin-action@v1
+        with:
+          command: build
+          args: ${{ matrix.maturin_args }}
 
       - name: Upload wheel artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: wheels-${{ matrix.os }}
+          name: wheels-${{ matrix.name }}
           path: target/wheels/*.whl
 
   publish:
-    name: Publish wheels to PyPI
+    name: Publish to PyPI
     needs: build
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout source
+        uses: actions/checkout@v4
 
-      - name: Download artifacts
+      - name: Download wheel artifacts
         uses: actions/download-artifact@v4
         with:
           path: dist
@@ -56,8 +204,16 @@ jobs:
           mkdir -p final_dist
           find dist -name '*.whl' -exec mv {} final_dist/ \;
 
-      - name: Install maturin
-        run: python -m pip install --upgrade pip maturin
+      - name: List final wheels
+        run: |
+          ls -la final_dist
 
-      - name: Publish to PyPI using maturin
-        run: maturin upload final_dist/*.whl --non-interactive -u __token__ -p ${{ secrets.PYPI_API_TOKEN }}
+      - name: Publish wheels to PyPI
+        uses: PyO3/maturin-action@v1
+        env:
+          MATURIN_PYPI_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
+        with:
+          command: upload
+          args: >-
+            --non-interactive
+            final_dist/*.whl
