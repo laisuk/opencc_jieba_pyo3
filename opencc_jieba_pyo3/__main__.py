@@ -8,10 +8,26 @@ from opencc_jieba_pyo3 import OpenCC
 from .office_helper import OFFICE_FORMATS, convert_office_doc
 
 
-def subcommand_convert(args):
-    if args.config is None:
+def resolve_config(config):
+    if config is None:
         print("ℹ️  Config not set. Use default: s2t", file=sys.stderr)
-        args.config = "s2t"
+        return "s2t"
+
+    if not OpenCC.is_valid_config(config):
+        print(f"❌  Invalid OpenCC config: {config}", file=sys.stderr)
+        print(
+            f"   Supported configs: {' | '.join(OpenCC.supported_configs())}",
+            file=sys.stderr,
+        )
+        return None
+
+    return config
+
+
+def subcommand_convert(args):
+    config = resolve_config(args.config)
+    if config is None:
+        return 1
 
     opencc = OpenCC(args.config)
 
@@ -80,13 +96,12 @@ def subcommand_office(args):
     output_file = args.output
     office_format = args.format
     auto_ext = getattr(args, "auto_ext", False)
-    config = args.config
     punct = args.punct
     keep_font = getattr(args, "keep_font", False)
 
-    if args.config is None:
-        print("ℹ️  Config not set. Use default: s2t", file=sys.stderr)
-        args.config = "s2t"
+    config = resolve_config(args.config)
+    if config is None:
+        return 1
 
     # Check for missing input/output files
     if not input_file and not output_file:

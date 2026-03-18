@@ -3,22 +3,29 @@ from typing import List, Tuple
 
 
 class OpenCC(_OpenCC):
-    CONFIG_LIST = [
-        "s2t", "t2s", "s2tw", "tw2s", "s2twp", "tw2sp", "s2hk", "hk2s",
-        "t2tw", "tw2t", "t2twp", "tw2tp", "t2hk", "hk2t", "t2jp", "jp2t"
-    ]
-
     def __init__(self, config="s2t"):
-        self.config = config if config in self.CONFIG_LIST else "s2t"
+        self.config = super().config if super().is_valid_config(config) else "s2t"
 
     def set_config(self, config):
         """
-        Set the conversion configuration.
+        Set the OpenCC conversion configuration.
 
-        :param config: One of OpenCC.CONFIG_LIST
+        The input is case-insensitive. If the configuration is valid,
+        it will be normalized to the canonical lowercase form.
+        If invalid, the configuration falls back to "s2t".
+
+        Parameters
+        ----------
+        config : str
+            The configuration string (e.g. "s2t", "t2s").
+
+        See Also
+        --------
+        is_valid_config : Validate a configuration string
+        supported_configs : List all supported configurations
         """
-        if config in self.CONFIG_LIST:
-            self.config = config
+        if super().is_valid_config(config):
+            super().apply_config(config)
         else:
             self.config = "s2t"
 
@@ -37,7 +44,7 @@ class OpenCC(_OpenCC):
 
         :return: List of config names
         """
-        return cls.CONFIG_LIST
+        return super().supported_configs()
 
     def zho_check(self, input_text):
         """

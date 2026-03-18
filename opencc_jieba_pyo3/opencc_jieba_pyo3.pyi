@@ -26,6 +26,71 @@ class OpenCC:
         self.config = config
         ...
 
+    @staticmethod
+    def is_valid_config(config: str) -> bool:
+        """
+        Check whether a string is a valid OpenCC configuration.
+
+        This method performs a case-insensitive check against all supported
+        OpenCC conversion configurations (e.g. "s2t", "t2s", "s2tw").
+
+        Parameters
+        ----------
+        config : str
+            The configuration string to validate.
+
+        Returns
+        -------
+        bool
+            True if the configuration is valid, False otherwise.
+        """
+
+    ...
+
+    @staticmethod
+    def supported_configs() -> List[str]:
+        """
+        Return all supported OpenCC configuration names (canonical lowercase).
+
+        Returns
+        -------
+        List[str]
+        """
+        ...
+
+    def get_config(self) -> str:
+        """
+        Get the current OpenCC configuration.
+
+        Returns the canonical configuration string (always lowercase),
+        regardless of how it was originally provided.
+
+        Returns
+        -------
+        str
+            The current configuration (e.g. "s2t", "t2s").
+        """
+        ...
+
+    def apply_config(self, config: str) -> None:
+        """
+        Apply a new OpenCC configuration.
+
+        The input is case-insensitive and will be normalized to the canonical
+        lowercase form if valid.
+
+        Parameters
+        ----------
+        config : str
+            The configuration string to apply (e.g. "s2t", "t2s").
+
+        Raises
+        ------
+        ValueError
+            If the provided configuration is not supported.
+        """
+        ...
+
     def convert(self, input_text: str, punctuation: bool) -> str:
         """
         Convert Chinese text using the current OpenCC config.

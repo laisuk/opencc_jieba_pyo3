@@ -11,14 +11,15 @@
 //! - Utility functions for punctuation handling and language detection
 
 use opencc_jieba_rs;
-use opencc_jieba_rs::OpenCC as _OpenCC;
+use opencc_jieba_rs::{OpenCC as _OpenCC, OpenccConfig};
+use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
 
-/// Supported OpenCC conversion configurations.
-const CONFIG_LIST: [&str; 16] = [
-    "s2t", "t2s", "s2tw", "tw2s", "s2twp", "tw2sp", "s2hk", "hk2s", "t2tw", "tw2t", "t2twp",
-    "tw2tp", "t2hk", "hk2t", "t2jp", "jp2t",
-];
+// /// Supported OpenCC conversion configurations.
+// const CONFIG_LIST: [&str; 16] = [
+//     "s2t", "t2s", "s2tw", "tw2s", "s2twp", "tw2sp", "s2hk", "hk2s", "t2tw", "tw2t", "t2twp",
+//     "tw2tp", "t2hk", "hk2t", "t2jp", "jp2t",
+// ];
 
 /// Python-exposed OpenCC class, wrapping OpenCC and Jieba functionalities.
 ///
@@ -30,7 +31,7 @@ struct OpenCC {
     /// Internal OpenCC instance.
     opencc: _OpenCC,
     /// Current OpenCC config string.
-    #[pyo3(get, set)]
+    #[pyo3(get)]
     config: String,
 }
 
@@ -44,14 +45,54 @@ impl OpenCC {
     #[pyo3(signature = (config=None))]
     fn new(config: Option<&str>) -> Self {
         let opencc = _OpenCC::new();
-        let config_str = match config {
-            Some(c) if CONFIG_LIST.contains(&c) => c.to_string(),
-            _ => "s2t".to_string(),
-        };
+
+        let config = config
+            .and_then(|c| OpenccConfig::try_from(c).ok())
+            .unwrap_or(OpenccConfig::S2t);
+
         OpenCC {
             opencc,
-            config: config_str,
+            config: config.as_str().to_string(),
         }
+    }
+
+    #[setter]
+    fn set_config(&mut self, config: &str) -> PyResult<()> {
+        let cfg = OpenccConfig::try_from(config)
+            .map_err(|_| PyValueError::new_err(format!(
+                "invalid OpenCC config: {config}"
+            )))?;
+
+        self.config = cfg.as_str().to_owned();
+        Ok(())
+    }
+
+    /// Returns the current canonical config string.
+    fn get_config(&self) -> &str {
+        &self.config
+    }
+
+    /// Applies a config string (case-insensitive).
+    /// Raises ValueError if invalid.
+    fn apply_config(&mut self, config: &str) -> PyResult<()> {
+        let cfg = OpenccConfig::try_from(config)
+            .map_err(|_| PyValueError::new_err(format!(
+                "invalid OpenCC config: {config}"
+            )))?;
+
+        self.config = cfg.as_str().to_owned();
+        Ok(())
+    }
+
+    /// Returns True if the given string is a valid OpenCC config.
+    #[staticmethod]
+    fn is_valid_config(config: &str) -> bool {
+        OpenccConfig::is_valid_config(config)
+    }
+
+    #[staticmethod]
+    fn supported_configs() -> Vec<&'static str> {
+        OpenccConfig::ALL.iter().map(|c| c.as_str()).collect()
     }
 
     /// Convert Chinese text using the current OpenCC config.

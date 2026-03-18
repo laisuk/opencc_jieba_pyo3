@@ -25,7 +25,8 @@ def main() -> None:
     text = "“春眠不觉晓，处处闻啼鸟。夜来风雨声，花落知多少”"
     # text = "潦水盡而寒潭清，煙光凝而暮山紫。儼驂騑於上路，訪風景於崇阿；臨帝子之長洲，得天人之舊館。"
 
-    opencc = OpenCC()
+    opencc = OpenCC("T2S")
+    print(f"Original config: {opencc.config}")
 
     print(f"Original text: {text}")
     print(f"Default config: {opencc.config}")
