@@ -183,9 +183,8 @@ jobs:
           name: wheels-${{ matrix.name }}
           path: target/wheels/*.whl
 
-  publish:
-    name: Publish to PyPI
-    needs: build
+  build_sdist:
+    name: Build sdist
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -194,22 +193,40 @@ jobs:
       - name: Checkout source
         uses: actions/checkout@v4
 
-      - name: Download wheel artifacts
-        uses: actions/download-artifact@v4
-        with:
-          path: dist
-
       - name: Build sdist
         uses: PyO3/maturin-action@v1
         with:
-          command: build
-          args: --release --sdist
+          command: sdist
+
+      - name: Upload sdist artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: sdist
+          path: target/wheels/*.tar.gz
+
+  publish:
+    name: Publish to PyPI
+    needs:
+      - build
+      - build_sdist
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: dist
 
       - name: Merge wheels + sdist
         run: |
           mkdir -p final_dist
           find dist -name '*.whl' -exec mv {} final_dist/ \;
-          mv target/wheels/*.tar.gz final_dist/ || true
+          find dist -name '*.tar.gz' -exec mv {} final_dist/ \;
 
       - name: List final dist
         run: |
