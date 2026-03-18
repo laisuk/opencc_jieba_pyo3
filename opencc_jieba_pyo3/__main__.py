@@ -7,13 +7,17 @@ import io
 from opencc_jieba_pyo3 import OpenCC
 from .office_helper import OFFICE_FORMATS, convert_office_doc
 
+CONFIG_HELP = "Conversion configuration: " + " | ".join(OpenCC.supported_configs())
+
 
 def resolve_config(config):
     if config is None:
         print("ℹ️  Config not set. Use default: s2t", file=sys.stderr)
         return "s2t"
 
-    if not OpenCC.is_valid_config(config):
+    try:
+        return OpenCC.canonicalise_config(config)
+    except ValueError:
         print(f"❌  Invalid OpenCC config: {config}", file=sys.stderr)
         print(
             f"   Supported configs: {' | '.join(OpenCC.supported_configs())}",
@@ -21,15 +25,13 @@ def resolve_config(config):
         )
         return None
 
-    return config
-
 
 def subcommand_convert(args):
     config = resolve_config(args.config)
     if config is None:
         return 1
 
-    opencc = OpenCC(args.config)
+    opencc = OpenCC(config)
 
     # Prompt only if reading from stdin, and it's interactive (i.e., not piped or redirected)
     if args.input is None and sys.stdin.isatty():
@@ -46,7 +48,7 @@ def subcommand_convert(args):
     in_from = args.input if args.input else "<stdin>"
     out_to = args.output if args.output else "<stdout>"
     if sys.stderr.isatty():
-        print(f"Conversion completed ({args.config}): {in_from} -> {out_to}", file=sys.stderr)
+        print(f"Conversion completed ({config}): {in_from} -> {out_to}", file=sys.stderr)
     return 0
 
 
@@ -145,7 +147,7 @@ def subcommand_office(args):
             keep_font,
         )
         if success:
-            print(f"{message}\n📁  Output saved to: {os.path.abspath(output_file)}", file=sys.stderr)
+            print(f"{message} ({config})\n📁  Output saved to: {os.path.abspath(output_file)}", file=sys.stderr)
             return 0
         else:
             print(f"❌  Office document conversion failed: {message}", file=sys.stderr)
@@ -170,7 +172,7 @@ def main():
     parser_convert.add_argument('-o', '--output', metavar='<file>',
                                 help='Write converted text to <file>.')
     parser_convert.add_argument('-c', '--config', metavar='<conversion>',
-                                help='Conversion configuration: [s2t|s2tw|s2twp|s2hk|t2s|tw2s|tw2sp|hk2s|jp2t|t2jp]')
+                                help=CONFIG_HELP)
     parser_convert.add_argument('-p', '--punct', action='store_true', default=False,
                                 help='Punctuation conversion')
     parser_convert.add_argument('--in-enc', metavar='<encoding>', default='UTF-8',
@@ -204,7 +206,7 @@ def main():
     parser_office.add_argument('-o', '--output', metavar='<file>',
                                help='Output Office document to <file>.')
     parser_office.add_argument('-c', '--config', metavar='<conversion>',
-                               help='conversion: s2t|s2tw|s2twp|s2hk|t2s|tw2s|tw2sp|hk2s|jp2t|t2jp')
+                               help=CONFIG_HELP)
     parser_office.add_argument('-p', '--punct', action='store_true', default=False,
                                help='Punctuation conversion')
     parser_office.add_argument('-f', '--format', metavar='<format>',

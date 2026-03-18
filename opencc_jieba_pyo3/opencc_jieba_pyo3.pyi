@@ -44,8 +44,7 @@ class OpenCC:
         bool
             True if the configuration is valid, False otherwise.
         """
-
-    ...
+        ...
 
     @staticmethod
     def supported_configs() -> List[str]:
@@ -55,6 +54,31 @@ class OpenCC:
         Returns
         -------
         List[str]
+        """
+        ...
+
+    @staticmethod
+    def canonicalise_config(config: str) -> str:
+        """
+        Return the canonical OpenCC configuration name.
+
+        This method validates the given configuration string and returns its
+        canonical lowercase form. Matching is case-insensitive.
+
+        Parameters
+        ----------
+        config : str
+            The configuration string to normalize.
+
+        Returns
+        -------
+        str
+            The canonical configuration name (e.g. "s2t", "t2s").
+
+        Raises
+        ------
+        ValueError
+            If the provided configuration is not supported.
         """
         ...
 

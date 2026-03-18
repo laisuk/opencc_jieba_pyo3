@@ -37,15 +37,6 @@ class OpenCC(_OpenCC):
         """
         return self.config
 
-    @classmethod
-    def supported_configs(cls):
-        """
-        Return a list of supported conversion config strings.
-
-        :return: List of config names
-        """
-        return super().supported_configs()
-
     def zho_check(self, input_text):
         """
         Heuristically determine whether input text is Simplified or Traditional Chinese.

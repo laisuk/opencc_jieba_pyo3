@@ -27,8 +27,6 @@ def main() -> None:
 
     # opencc = OpenCC()
     opencc = OpenCC("T2S")
-    opencc.set_config("Tw2S")
-    opencc.config = "Tw2SP"
     print(f"Original config: {opencc.config}")
     print(f"Supported configs: {OpenCC.supported_configs()}")
 

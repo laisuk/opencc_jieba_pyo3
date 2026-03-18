@@ -15,12 +15,6 @@ use opencc_jieba_rs::{OpenCC as _OpenCC, OpenccConfig};
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
 
-// /// Supported OpenCC conversion configurations.
-// const CONFIG_LIST: [&str; 16] = [
-//     "s2t", "t2s", "s2tw", "tw2s", "s2twp", "tw2sp", "s2hk", "hk2s", "t2tw", "tw2t", "t2twp",
-//     "tw2tp", "t2hk", "hk2t", "t2jp", "jp2t",
-// ];
-
 /// Python-exposed OpenCC class, wrapping OpenCC and Jieba functionalities.
 ///
 /// ## Parameters
@@ -39,8 +33,21 @@ struct OpenCC {
 impl OpenCC {
     /// Create a new OpenCC instance.
     ///
+    /// Initializes the converter with the given configuration. The input
+    /// configuration string is case-insensitive and will be normalized to
+    /// the canonical lowercase form.
+    ///
+    /// If no configuration is provided, or if the provided value is invalid,
+    /// the default configuration `"s2t"` is used.
+    ///
     /// # Arguments
-    /// * `config` - Optional config string (must be in CONFIG_LIST, defaults to "s2t")
+    ///
+    /// * `config` - Optional configuration string (e.g. `"s2t"`, `"t2s"`).
+    ///
+    /// # Behavior
+    ///
+    /// - Case-insensitive input is accepted (e.g. `"T2S"` → `"t2s"`).
+    /// - Invalid or unknown values fall back to `"s2t"`.
     #[new]
     #[pyo3(signature = (config=None))]
     fn new(config: Option<&str>) -> Self {
@@ -56,43 +63,114 @@ impl OpenCC {
         }
     }
 
+    /// Set the OpenCC conversion configuration.
+    ///
+    /// This setter validates the provided configuration string and updates the
+    /// internal configuration if valid. The input is case-insensitive and will
+    /// be normalized to the canonical lowercase form.
+    ///
+    /// # Arguments
+    ///
+    /// * `config` - A configuration string (e.g. `"s2t"`, `"t2s"`, `"s2twp"`).
+    ///
+    /// # Errors
+    ///
+    /// Returns a `ValueError` if the provided configuration is not supported.
     #[setter]
     fn set_config(&mut self, config: &str) -> PyResult<()> {
         let cfg = OpenccConfig::try_from(config)
-            .map_err(|_| PyValueError::new_err(format!(
-                "invalid OpenCC config: {config}"
-            )))?;
+            .map_err(|_| PyValueError::new_err(format!("invalid OpenCC config: {config}")))?;
 
         self.config = cfg.as_str().to_owned();
         Ok(())
     }
 
-    /// Returns the current canonical config string.
+    /// Get the current OpenCC configuration.
+    ///
+    /// Returns the canonical configuration string (always lowercase),
+    /// regardless of how it was originally provided.
+    ///
+    /// # Returns
+    ///
+    /// The current configuration (e.g. `"s2t"`, `"t2s"`).
     fn get_config(&self) -> &str {
         &self.config
     }
 
-    /// Applies a config string (case-insensitive).
-    /// Raises ValueError if invalid.
+    /// Apply a new OpenCC configuration.
+    ///
+    /// This method validates and applies the provided configuration string.
+    /// The input is case-insensitive and will be normalized to the canonical
+    /// lowercase form.
+    ///
+    /// # Arguments
+    ///
+    /// * `config` - A configuration string (e.g. `"s2t"`, `"t2s"`).
+    ///
+    /// # Errors
+    ///
+    /// Returns a `ValueError` if the provided configuration is not supported.
     fn apply_config(&mut self, config: &str) -> PyResult<()> {
         let cfg = OpenccConfig::try_from(config)
-            .map_err(|_| PyValueError::new_err(format!(
-                "invalid OpenCC config: {config}"
-            )))?;
+            .map_err(|_| PyValueError::new_err(format!("invalid OpenCC config: {config}")))?;
 
         self.config = cfg.as_str().to_owned();
         Ok(())
     }
 
-    /// Returns True if the given string is a valid OpenCC config.
+    /// Check whether a string is a valid OpenCC configuration.
+    ///
+    /// This performs a case-insensitive validation against all supported
+    /// configuration names.
+    ///
+    /// # Arguments
+    ///
+    /// * `config` - The configuration string to validate.
+    ///
+    /// # Returns
+    ///
+    /// `true` if the configuration is valid, otherwise `false`.
     #[staticmethod]
     fn is_valid_config(config: &str) -> bool {
         OpenccConfig::is_valid_config(config)
     }
 
+    /// Return all supported OpenCC configuration names.
+    ///
+    /// The returned list contains canonical configuration identifiers
+    /// (all lowercase), such as `"s2t"`, `"t2s"`, `"s2tw"`, etc.
+    ///
+    /// # Returns
+    ///
+    /// A vector of all supported configuration names.
     #[staticmethod]
     fn supported_configs() -> Vec<&'static str> {
         OpenccConfig::ALL.iter().map(|c| c.as_str()).collect()
+    }
+
+    /// Return the canonical OpenCC configuration name.
+    ///
+    /// This method validates the provided configuration string and returns its
+    /// canonical lowercase form if valid. Matching is case-insensitive.
+    ///
+    /// # Arguments
+    ///
+    /// * `config` - A configuration string (e.g. `"s2t"`, `"T2S"`, `"S2TWP"`).
+    ///
+    /// # Returns
+    ///
+    /// The canonical configuration name (e.g. `"s2t"`, `"t2s"`, `"s2twp"`).
+    ///
+    /// # Errors
+    ///
+    /// Returns a `ValueError` if the provided configuration is not supported.
+    #[staticmethod]
+    fn canonicalise_config(config: &str) -> PyResult<&'static str> {
+        let cfg = OpenccConfig::try_from(config)
+            .map_err(|_| PyValueError::new_err(format!(
+                "invalid OpenCC config: {config}"
+            )))?;
+        Ok(cfg.as_str())
     }
 
     /// Convert Chinese text using the current OpenCC config.
