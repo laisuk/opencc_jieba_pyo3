@@ -40,6 +40,9 @@ develop:
 		$$env:RUSTUP_TOOLCHAIN = $$oldToolchain \
 	"
 
+sdist:
+	maturin sdist
+
 # -------------------------
 # Stable toolchain builds
 # -------------------------
