@@ -63,7 +63,7 @@ def main() -> None:
     cut_all = opencc.jieba_cut_all(text)
     print(f"Cut all: {cut_all}")
 
-    join_text = opencc.jieba_cut_and_join(text)
+    join_text = opencc.jieba_segment_join(text)
     print(f"Joined text: {join_text}")
 
     print("\n=== Jieba POS Tagging ===")
