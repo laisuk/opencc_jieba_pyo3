@@ -7,7 +7,7 @@ import io
 from opencc_jieba_pyo3 import OpenCC
 from .office_helper import OFFICE_FORMATS, convert_office_doc
 
-CONFIG_HELP = "Conversion configuration: " + " | ".join(OpenCC.supported_configs())
+CONFIG_HELP = "Configuration: " + "|".join(OpenCC.supported_configs())
 
 
 def resolve_config(config):
