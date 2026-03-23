@@ -7,6 +7,14 @@ the [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format.
 
 ---
 
+## [0.7.4] - 2026-03-23
+
+### Changed
+
+- Update opencc-jieba-rs to v0.7.4
+
+---
+
 ## [0.7.3] - 2026-03-17
 
 ### Changed

@@ -1,5 +1,5 @@
 from .opencc_jieba_pyo3 import OpenCC as _OpenCC
-from typing import List, Tuple
+from typing import List, Tuple, Optional
 
 
 class OpenCC(_OpenCC):
@@ -178,42 +178,102 @@ class OpenCC(_OpenCC):
                 f"Supported modes: cut | search | full | tag"
             )
 
-    def jieba_keyword_extract_textrank(self, input_text: str, top_k: int = 10) -> List[str]:
+    def jieba_keyword_extract_textrank(
+            self,
+            input_text: str,
+            top_k: int = 10,
+            allowed_pos: Optional[List[str]] = None,
+    ) -> List[str]:
         """
         Extract top keywords using the TextRank algorithm.
 
         :param input_text: The input text to analyze.
         :param top_k: The number of top keywords to extract.
+        :param allowed_pos: Optional list of allowed part-of-speech (POS) tags.
+                            Each item may contain one or more POS tags separated by whitespace.
+
+        Examples:
+            - ["n"]                  → only nouns
+            - ["n", "nr"]            → nouns and person names
+            - ["n ns nt nz"]         → all noun-related tags
+            - ["v", "vn"]            → verbs
+            - ["n nr", "ns"]         → equivalent to ["n", "nr", "ns"]
+
+        Common POS tags:
+            - n  : noun
+            - nr : person name
+            - ns : place name
+            - nt : organization
+            - nz : proper noun
+            - v  : verb
+
         :return: A list of top keywords.
         """
-        return super().jieba_keyword_extract_textrank(input_text, top_k)
+        return super().jieba_keyword_extract_textrank(input_text, top_k, allowed_pos)
 
-    def jieba_keyword_extract_tfidf(self, input_text: str, top_k: int = 10) -> List[str]:
+    def jieba_keyword_extract_tfidf(
+            self,
+            input_text: str,
+            top_k: int = 10,
+            allowed_pos: Optional[List[str]] = None,
+    ) -> List[str]:
         """
         Extract top keywords using the TF-IDF algorithm.
 
         :param input_text: The input text to analyze.
         :param top_k: The number of top keywords to extract.
+        :param allowed_pos: Optional list of allowed part-of-speech (POS) tags.
+                            Each item may contain one or more POS tags separated by whitespace.
+
+        Examples:
+            - ["n"]                  → only nouns
+            - ["n", "nr"]            → nouns and person names
+            - ["n ns nt nz"]         → all noun-related tags
+            - ["v", "vn"]            → verbs
+            - ["n nr", "ns"]         → equivalent to ["n", "nr", "ns"]
+
+        Common POS tags:
+            - n  : noun
+            - nr : person name
+            - ns : place name
+            - nt : organization
+            - nz : proper noun
+            - v  : verb
+
         :return: A list of top keywords.
         """
-        return super().jieba_keyword_extract_tfidf(input_text, top_k)
+        return super().jieba_keyword_extract_tfidf(input_text, top_k, allowed_pos)
 
-    def jieba_keyword_weight_textrank(self, input_text: str, top_k: int = 10) -> List[Tuple[str, float]]:
+    def jieba_keyword_weight_textrank(
+            self,
+            input_text: str,
+            top_k: int = 10,
+            allowed_pos: Optional[List[str]] = None,
+    ) -> List[Tuple[str, float]]:
         """
         Extract top keywords with their weights using the TextRank algorithm.
 
         :param input_text: The input text to analyze.
         :param top_k: The number of top keywords to extract.
+        :param allowed_pos: Optional list of allowed part-of-speech tags.
+                            Each item may contain one or more POS tags separated by whitespace.
         :return: A list of (keyword, weight) tuples.
         """
-        return super().jieba_keyword_weight_textrank(input_text, top_k)
+        return super().jieba_keyword_weight_textrank(input_text, top_k, allowed_pos)
 
-    def jieba_keyword_weight_tfidf(self, input_text: str, top_k: int = 10) -> List[Tuple[str, float]]:
+    def jieba_keyword_weight_tfidf(
+            self,
+            input_text: str,
+            top_k: int = 10,
+            allowed_pos: Optional[List[str]] = None,
+    ) -> List[Tuple[str, float]]:
         """
         Extract top keywords with their weights using the TF-IDF algorithm.
 
         :param input_text: The input text to analyze.
         :param top_k: The number of top keywords to extract.
+        :param allowed_pos: Optional list of allowed part-of-speech tags.
+                            Each item may contain one or more POS tags separated by whitespace.
         :return: A list of (keyword, weight) tuples.
         """
-        return super().jieba_keyword_weight_tfidf(input_text, top_k)
+        return super().jieba_keyword_weight_tfidf(input_text, top_k, allowed_pos)

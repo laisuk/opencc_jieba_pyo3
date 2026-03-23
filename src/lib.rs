@@ -29,6 +29,32 @@ struct OpenCC {
     config: String,
 }
 
+impl OpenCC {
+    #[inline]
+    fn normalize_top_k(top_k: i32) -> usize {
+        if top_k <= 0 {
+            0
+        } else {
+            top_k as usize
+        }
+    }
+
+    #[inline]
+    fn build_allowed_pos<'a>(allowed_pos: Option<&'a [String]>) -> Option<Vec<&'a str>> {
+        let pos = allowed_pos?
+            .iter()
+            .flat_map(|s| s.split_whitespace())
+            .filter(|s| !s.is_empty())
+            .collect::<Vec<&'a str>>();
+
+        if pos.is_empty() {
+            None
+        } else {
+            Some(pos)
+        }
+    }
+}
+
 #[pymethods]
 impl OpenCC {
     /// Create a new OpenCC instance.
@@ -167,9 +193,7 @@ impl OpenCC {
     #[staticmethod]
     fn canonicalise_config(config: &str) -> PyResult<&'static str> {
         let cfg = OpenccConfig::try_from(config)
-            .map_err(|_| PyValueError::new_err(format!(
-                "invalid OpenCC config: {config}"
-            )))?;
+            .map_err(|_| PyValueError::new_err(format!("invalid OpenCC config: {config}")))?;
         Ok(cfg.as_str())
     }
 
@@ -265,12 +289,23 @@ impl OpenCC {
     /// # Arguments
     /// * `input_text` - Input text
     /// * `top_k` - Number of keywords to extract
+    /// * `allowed_pos` - Optional POS tags, each string may contain one or more tags separated by whitespace
     ///
     /// # Returns
     /// List of keywords.
-    fn jieba_keyword_extract_textrank(&self, input_text: &str, top_k: i32) -> Vec<String> {
-        self.opencc
-            .keyword_extract_textrank(input_text, top_k as usize)
+    #[pyo3(signature = (input_text, top_k=20, allowed_pos=None))]
+    fn jieba_keyword_extract_textrank(
+        &self,
+        input_text: &str,
+        top_k: i32,
+        allowed_pos: Option<Vec<String>>,
+    ) -> Vec<String> {
+        let allowed_pos_buf = Self::build_allowed_pos(allowed_pos.as_deref());
+        self.opencc.keyword_extract_textrank_pos(
+            input_text,
+            Self::normalize_top_k(top_k),
+            allowed_pos_buf.as_deref(),
+        )
     }
 
     /// Extract keywords using TF-IDF algorithm.
@@ -278,12 +313,23 @@ impl OpenCC {
     /// # Arguments
     /// * `input_text` - Input text
     /// * `top_k` - Number of keywords to extract
+    /// * `allowed_pos` - Optional POS tags, each string may contain one or more tags separated by whitespace
     ///
     /// # Returns
     /// List of keywords.
-    fn jieba_keyword_extract_tfidf(&self, input_text: &str, top_k: i32) -> Vec<String> {
-        self.opencc
-            .keyword_extract_tfidf(input_text, top_k as usize)
+    #[pyo3(signature = (input_text, top_k=20, allowed_pos=None))]
+    fn jieba_keyword_extract_tfidf(
+        &self,
+        input_text: &str,
+        top_k: i32,
+        allowed_pos: Option<Vec<String>>,
+    ) -> Vec<String> {
+        let allowed_pos_buf = Self::build_allowed_pos(allowed_pos.as_deref());
+        self.opencc.keyword_extract_tfidf_pos(
+            input_text,
+            Self::normalize_top_k(top_k),
+            allowed_pos_buf.as_deref(),
+        )
     }
 
     /// Extract keywords and their weights using TextRank.
@@ -291,14 +337,24 @@ impl OpenCC {
     /// # Arguments
     /// * `input_text` - Input text
     /// * `top_k` - Number of keywords to extract
+    /// * `allowed_pos` - Optional POS tags, each string may contain one or more tags separated by whitespace
     ///
     /// # Returns
     /// List of (keyword, weight) tuples.
-    fn jieba_keyword_weight_textrank(&self, input_text: &str, top_k: i32) -> Vec<(String, f64)> {
-        let keywords = self
-            .opencc
-            .keyword_weight_textrank(input_text, top_k as usize);
-        keywords
+    #[pyo3(signature = (input_text, top_k=20, allowed_pos=None))]
+    fn jieba_keyword_weight_textrank(
+        &self,
+        input_text: &str,
+        top_k: i32,
+        allowed_pos: Option<Vec<String>>,
+    ) -> Vec<(String, f64)> {
+        let allowed_pos_buf = Self::build_allowed_pos(allowed_pos.as_deref());
+        self.opencc
+            .keyword_weight_textrank_pos(
+                input_text,
+                Self::normalize_top_k(top_k),
+                allowed_pos_buf.as_deref(),
+            )
             .into_iter()
             .map(|keyword| (keyword.keyword, keyword.weight))
             .collect()
@@ -309,12 +365,24 @@ impl OpenCC {
     /// # Arguments
     /// * `input_text` - Input text
     /// * `top_k` - Number of keywords to extract
+    /// * `allowed_pos` - Optional POS tags, each string may contain one or more tags separated by whitespace
     ///
     /// # Returns
     /// List of (keyword, weight) tuples.
-    fn jieba_keyword_weight_tfidf(&self, input_text: &str, top_k: i32) -> Vec<(String, f64)> {
-        let keywords = self.opencc.keyword_weight_tfidf(input_text, top_k as usize);
-        keywords
+    #[pyo3(signature = (input_text, top_k=20, allowed_pos=None))]
+    fn jieba_keyword_weight_tfidf(
+        &self,
+        input_text: &str,
+        top_k: i32,
+        allowed_pos: Option<Vec<String>>,
+    ) -> Vec<(String, f64)> {
+        let allowed_pos_buf = Self::build_allowed_pos(allowed_pos.as_deref());
+        self.opencc
+            .keyword_weight_tfidf_pos(
+                input_text,
+                Self::normalize_top_k(top_k),
+                allowed_pos_buf.as_deref(),
+            )
             .into_iter()
             .map(|keyword| (keyword.keyword, keyword.weight))
             .collect()
