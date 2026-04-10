@@ -204,6 +204,21 @@ Unified Python interface for OpenCC and Jieba functionalities.
 
 #### Methods
 
+- `is_valid_config(config: str) -> bool`
+    - Check whether `config` is a supported OpenCC conversion name.
+
+- `supported_configs() -> list[str]`
+    - Return all supported OpenCC conversion names in canonical lowercase form.
+
+- `canonicalise_config(config: str) -> str`
+    - Normalize a valid config name to its canonical lowercase form.
+
+- `set_config(config: str) -> None`
+    - Update the active OpenCC conversion configuration.
+
+- `get_config() -> str`
+    - Return the current OpenCC conversion configuration.
+
 - `convert(input: str, punctuation: bool = False) -> str`
     - Convert Chinese text using the current OpenCC config.
     - `input`: Input text.
@@ -215,40 +230,68 @@ Unified Python interface for OpenCC and Jieba functionalities.
     - Returns: Integer code (1: Traditional, 2: Simplified, 0: Others).
 
 - `jieba_cut(input: str, hmm: bool = True) -> list[str]`
-    - Segment Chinese text using Jieba.
+    - Segment Chinese text using Jieba accurate mode.
     - `input`: Input text.
     - `hmm`: Whether to use HMM for new words.
     - Returns: List of segmented words.
 
+- `jieba_cut_for_search(input: str, hmm: bool = True) -> list[str]`
+    - Segment Chinese text in Jieba search mode.
+    - Produces finer-grained tokens suitable for search indexing.
+
+- `jieba_cut_all(input: str) -> list[str]`
+    - Segment Chinese text in Jieba full mode.
+    - Returns all possible token matches without disambiguation.
+
+- `jieba_tag(input: str, hmm: bool = True) -> list[tuple[str, str]]`
+    - Perform Jieba part-of-speech tagging.
+    - Returns `(word, tag)` tuples.
+
+- `jieba_segment_join(input: str, mode: str = "cut", delim: str = "/", hmm: bool = True) -> str`
+    - Segment text and join the result into a single string.
+    - `mode`: One of `"cut"`, `"search"`, `"full"`, or `"tag"`.
+    - `delim`: Delimiter used to join segments or tagged tokens.
+    - `hmm`: Used by `"cut"`, `"search"`, and `"tag"` modes.
+
 - `jieba_cut_and_join(input: str, delimiter: str = "/") -> str`
-    - Segment and join Chinese text using Jieba.
+    - Deprecated compatibility wrapper for `jieba_segment_join(input, mode="cut", delim=delimiter)`.
     - `input`: Input text.
     - `delimiter`: Delimiter for joining words.
     - Returns: Joined segmented string.
 
-- `jieba_keyword_extract_textrank(input: str, top_k: int) -> list[str]`
+- `jieba_keyword_extract_textrank(input: str, top_k: int = 10, allowed_pos: list[str] | None = None) -> list[str]`
     - Extract keywords using the TextRank algorithm.
     - `input`: Input text.
     - `top_k`: Number of keywords to extract.
+    - `allowed_pos`: Optional POS filter list. Each item may contain one or more POS tags separated by whitespace.
     - Returns: List of keywords.
 
-- `jieba_keyword_extract_tfidf(input: str, top_k: int) -> list[str]`
+- `jieba_keyword_extract_tfidf(input: str, top_k: int = 10, allowed_pos: list[str] | None = None) -> list[str]`
     - Extract keywords using the TF-IDF algorithm.
     - `input`: Input text.
     - `top_k`: Number of keywords to extract.
+    - `allowed_pos`: Optional POS filter list. Each item may contain one or more POS tags separated by whitespace.
     - Returns: List of keywords.
 
-- `jieba_keyword_weight_textrank(input: str, top_k: int) -> list[tuple[str, float]]`
-    - Extract keywords and their weights using TextRank.
-    - `input`: Input text.
-    - `top_k`: Number of keywords to extract.
-    - Returns: List of (keyword, weight) tuples.
+-
 
-- `jieba_keyword_weight_tfidf(input: str, top_k: int) -> list[tuple[str, float]]`
-    - Extract keywords and their weights using TF-IDF.
-    - `input`: Input text.
-    - `top_k`: Number of keywords to extract.
-    - Returns: List of (keyword, weight) tuples.
+`jieba_keyword_weight_textrank(input: str, top_k: int = 10, allowed_pos: list[str] | None = None) -> list[tuple[str, float]]`
+- Extract keywords and their weights using TextRank.
+- `input`: Input text.
+- `top_k`: Number of keywords to extract.
+- `allowed_pos`: Optional POS filter list. Each item may contain one or more POS tags separated by whitespace.
+- Returns: List of (keyword, weight) tuples.
+
+-
+
+`jieba_keyword_weight_tfidf(input: str, top_k: int = 10, allowed_pos: list[str] | None = None) -> list[tuple[str, float]]`
+- Extract keywords and their weights using TF-IDF.
+- `input`: Input text.
+- `top_k`: Number of keywords to extract.
+- `allowed_pos`: Optional POS filter list. Each item may contain one or more POS tags separated by whitespace.
+- Returns: List of (keyword, weight) tuples.
+
+---
 
 ## Development
 
