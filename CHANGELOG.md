@@ -7,11 +7,21 @@ the [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format.
 
 ---
 
-## [0.7.4] - 2026-03-23
+## [0.7.4] - 2026-04-10
+
+### Added
+
+- Added `tag` mode in CLI subcommand `segment`.
+- Added `jieba_segment_join()`
 
 ### Changed
 
 - Update opencc-jieba-rs to v0.7.4
+- Optimized office_helper for handling `XLSX`
+
+### Fixed
+
+- Fix CLI config handling to support case-insensitive OpenCC configs
 
 ---
 

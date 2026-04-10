@@ -1,11 +1,9 @@
 from __future__ import print_function
 
 import argparse
-import os
 import sys
-import io
+
 from opencc_jieba_pyo3 import OpenCC
-from .office_helper import OFFICE_FORMATS, convert_office_doc
 
 CONFIG_HELP = "Configuration: " + "|".join(OpenCC.supported_configs())
 
@@ -27,6 +25,7 @@ def resolve_config(config):
 
 
 def subcommand_convert(args):
+    import io
     config = resolve_config(args.config)
     if config is None:
         return 1
@@ -53,20 +52,30 @@ def subcommand_convert(args):
 
 
 def subcommand_segment(args):
+    import io
     opencc = OpenCC()  # Default config if not needed for segmentation
 
     # Prompt only if reading from stdin, and it's interactive (i.e., not piped or redirected)
     if args.input is None and sys.stdin.isatty():
-        print("Input text to segment, <Ctrl+Z> (Windows) or <Ctrl+D> (Unix) then Enter to submit:", file=sys.stderr)
+        print(
+            "Input text to segment, <Ctrl+Z> (Windows) or <Ctrl+D> (Unix) then Enter to submit:",
+            file=sys.stderr
+        )
 
     with io.open(args.input if args.input else 0, encoding=args.in_enc) as f:
         input_str = f.read()
 
     mode = args.mode
+    delim = args.delim if args.delim is not None else " "
+
     if mode == "cut":
         segments = opencc.jieba_cut(input_str)
+        output_str = delim.join(segments)
+
     elif mode == "search":
         segments = opencc.jieba_cut_for_search(input_str)
+        output_str = delim.join(segments)
+
     elif mode == "full":
         # Prefer explicit full-mode API if your binding exposes one
         if hasattr(opencc, "jieba_cut_all"):
@@ -76,14 +85,17 @@ def subcommand_segment(args):
         else:
             print("❌  Full mode is not available in this build of opencc_jieba_pyo3.", file=sys.stderr)
             return 1
+        output_str = delim.join(segments)
+
+    elif mode == "tag":
+        tagged = opencc.jieba_tag(input_str)
+        output_str = delim.join(f"{word}/{tag}" for word, tag in tagged)
+
     else:
         print(f"❌  Invalid segmentation mode: {mode}", file=sys.stderr)
         return 1
 
-    delim = args.delim if args.delim is not None else " "
-    output_str = delim.join(segments)
-
-    with io.open(args.output if args.output else 1, 'w', encoding=args.out_enc) as f:
+    with io.open(args.output if args.output else 1, "w", encoding=args.out_enc) as f:
         f.write(output_str)
 
     in_from = args.input if args.input else "<stdin>"
@@ -94,6 +106,9 @@ def subcommand_segment(args):
 
 
 def subcommand_office(args):
+    import os
+    from pathlib import Path
+    from .office_helper import OFFICE_FORMATS, convert_office_doc
     input_file = args.input
     output_file = args.output
     office_format = args.format
@@ -115,12 +130,21 @@ def subcommand_office(args):
 
     # If output file is not specified, generate one based on input file
     if not output_file:
-        input_name = os.path.splitext(os.path.basename(input_file))[0]
-        input_ext = os.path.splitext(os.path.basename(input_file))[1]
-        input_dir = os.path.dirname(input_file) or os.getcwd()
-        ext = f".{office_format}" if auto_ext and office_format and office_format in OFFICE_FORMATS else input_ext
-        output_file = os.path.join(input_dir, f"{input_name}_converted{ext}")
-        print(f"ℹ️  Output file not specified. Using: {output_file}", file=sys.stderr)
+        input_path = Path(input_file)
+
+        input_name = input_path.stem
+        input_ext = input_path.suffix
+        input_dir = input_path.parent if input_path.parent != Path("") else Path.cwd()
+
+        if auto_ext and office_format in OFFICE_FORMATS:
+            ext = f".{office_format}"
+        else:
+            ext = input_ext
+
+        output_path = input_dir / f"{input_name}_converted{ext}"
+        output_file = str(output_path)
+
+        print(f"ℹ️  Output file not specified. Using: {output_path}", file=sys.stderr)
 
     # Determine office format from file extension if not provided
     if not office_format:
@@ -182,20 +206,27 @@ def main():
     parser_convert.set_defaults(func=subcommand_convert)
 
     # Segment subcommand
-    parser_segment = subparsers.add_parser('segment', formatter_class=argparse.ArgumentDefaultsHelpFormatter,
-                                           help='Segment Chinese text using Jieba')
-    parser_segment.add_argument('-i', '--input', metavar='<file>',
-                                help='Read input text from <file>.')
-    parser_segment.add_argument('-o', '--output', metavar='<file>',
-                                help='Write segmented text to <file>.')
-    parser_segment.add_argument('-d', '--delim', metavar='<char>', default=' ',
-                                help='Delimiter to join segments')
-    parser_segment.add_argument('--mode', choices=['cut', 'search', 'full'], default='cut',
-                                help='Segmentation mode')
-    parser_segment.add_argument('--in-enc', metavar='<encoding>', default='UTF-8',
-                                help='Encoding for input')
-    parser_segment.add_argument('--out-enc', metavar='<encoding>', default='UTF-8',
-                                help='Encoding for output')
+    parser_segment = subparsers.add_parser(
+        "segment",
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+        help="Segment Chinese text using Jieba"
+    )
+    parser_segment.add_argument("-i", "--input", metavar="<file>",
+                                help="Read input text from <file>.")
+    parser_segment.add_argument("-o", "--output", metavar="<file>",
+                                help="Write segmented text to <file>.")
+    parser_segment.add_argument("-d", "--delim", metavar="<char>", default=" ",
+                                help="Delimiter to join segments")
+    parser_segment.add_argument(
+        "--mode",
+        choices=["cut", "search", "full", "tag"],
+        default="cut",
+        help="Segmentation mode"
+    )
+    parser_segment.add_argument("--in-enc", metavar="<encoding>", default="UTF-8",
+                                help="Encoding for input")
+    parser_segment.add_argument("--out-enc", metavar="<encoding>", default="UTF-8",
+                                help="Encoding for output")
     parser_segment.set_defaults(func=subcommand_segment)
 
     # Office subcommand
