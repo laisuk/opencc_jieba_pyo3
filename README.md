@@ -141,14 +141,14 @@ options:
 python -m opencc_jieba_pyo3 segment --help
 opencc-jieba-pyo3 convert segment --help
 
-usage: opencc-jieba-pyo3 segment [-h] [-i <file>] [-o <file>] [-d <char>] [--mode {cut,search,full}] [--in-enc <encoding>] [--out-enc <encoding>]
+usage: opencc-jieba-pyo3 segment [-h] [-i <file>] [-o <file>] [-d <char>] [--mode {cut,search,full,tag}] [--in-enc <encoding>] [--out-enc <encoding>]
 
 options:
   -h, --help            show this help message and exit
   -i, --input <file>    Read input text from <file>. (default: None)
   -o, --output <file>   Write segmented text to <file>. (default: None)
   -d, --delim <char>    Delimiter to join segments (default: )
-  --mode {cut,search,full}
+  --mode {cut,search,full,tag}
                         Segmentation mode (default: cut)
   --in-enc <encoding>   Encoding for input (default: UTF-8)
   --out-enc <encoding>  Encoding for output (default: UTF-8)
