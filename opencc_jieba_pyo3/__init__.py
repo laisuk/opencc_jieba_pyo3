@@ -130,7 +130,8 @@ class OpenCC(_OpenCC):
             input_text: str,
             mode: str = "cut",
             delim: str = "/",
-            hmm: bool = True
+            hmm: bool = True,
+            separator: str = "/",
     ) -> str:
         """
         Perform Jieba segmentation and join result into a string.
@@ -141,19 +142,38 @@ class OpenCC(_OpenCC):
                      - "search" : Search engine mode
                      - "full"   : Full mode
                      - "tag"    : POS tagging mode (word/tag)
-        :param delim: Delimiter used to join tokens
+        :param delim: Delimiter used to join tokens (default: "/")
+                      Example: delim="|" -> 我|来到|北京
         :param hmm: Enable Hidden Markov Model (HMM)
+        :param separator: Separator between word and POS tag in ``mode="tag"``.
+                          Default is ``"/"`` (standard Jieba format).
         :return: Joined string result
 
-        Example:
+        Notes:
+            - In "tag" mode, if delim="/" (default), it will be automatically
+              replaced with a space " " to avoid conflict with "word/tag" format.
+            - You can fully customize output using both delim and separator.
+
+        Examples:
             >>> OpenCC.jieba_segment_join("我来到北京清华大学")
             '我/来到/北京/清华大学'
+
+            >>> OpenCC.jieba_segment_join("我来到北京清华大学", delim="|")
+            '我|来到|北京|清华大学'
 
             >>> OpenCC.jieba_segment_join("我来到北京清华大学", mode="search")
             '我/来到/北京/清华/华大/大学/清华大学'
 
             >>> OpenCC.jieba_segment_join("我来到北京清华大学", mode="tag")
             '我/r 来到/v 北京/ns 清华大学/nt'
+
+            >>> OpenCC.jieba_segment_join(
+            ...     "我来到北京清华大学",
+            ...     mode="tag",
+            ...     delim=" | ",
+            ...     separator=":"
+            ... )
+            '我:r | 来到:v | 北京:ns | 清华大学:nt'
         """
 
         mode = mode.lower()
@@ -168,9 +188,11 @@ class OpenCC(_OpenCC):
             return delim.join(super().jieba_cut_all(input_text))
 
         elif mode == "tag":
-            return delim.join(
-                f"{w}/{t}" for w, t in super().jieba_tag(input_text, hmm)
-            )
+            # Avoid conflict: "word/tag" vs delim="/"
+            join_delim = delim if delim != "/" else " "
+
+            tagged = super().jieba_tag(input_text, hmm)
+            return join_delim.join(f"{w}{separator}{t}" for w, t in tagged)
 
         else:
             raise ValueError(

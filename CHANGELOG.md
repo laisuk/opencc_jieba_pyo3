@@ -7,6 +7,12 @@ the [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format.
 
 ---
 
+## [0.7.5-beta1] - 2026-04-20
+
+### Changed
+
+- Added arg `separator` in `jieba_segment_join()` for segment method `"tag"`.
+
 ## [0.7.4] - 2026-04-10
 
 ### Added
