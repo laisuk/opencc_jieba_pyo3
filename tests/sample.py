@@ -12,16 +12,16 @@ print(words)  # ['我', '独自', '来到', '无人', '海岸线']
 
 # Segmentation and join
 joined = opencc.jieba_segment_join(segment_text, mode="cut", delim="/")
-print(joined)  # 我/独自/来到/无人/海岸线
+print("cut: " + joined)  # 我/独自/来到/无人/海岸线
 
 joined = opencc.jieba_segment_join(segment_text, mode="search", delim="/")
-print(joined)  # 我/独自/来到/无人/海岸/岸线/海岸线
+print("search: " + joined)  # 我/独自/来到/无人/海岸/岸线/海岸线
 
 joined = opencc.jieba_segment_join(segment_text, mode="full", delim="/")
-print(joined)  # 我/独/独自/自/自来/来/来到/到/无/无人/人/人海/海/海岸/海岸线/岸/岸线/线
+print("full: " + joined)  # 我/独/独自/自/自来/来/来到/到/无/无人/人/人海/海/海岸/海岸线/岸/岸线/线
 
-joined = opencc.jieba_segment_join(segment_text, mode="tag", delim=" ")
-print(joined)  # 我/r 独自/d 来到/v 无人/n 海岸线/n
+joined = opencc.jieba_segment_join(segment_text, mode="tag", delim=" ", separator=":")
+print("tag: " + joined)  # 我/r 独自/d 来到/v 无人/n 海岸线/n
 
 # Keyword extraction (TextRank)
 keywords = opencc.jieba_keyword_extract_textrank(segment_text, top_k=3)
