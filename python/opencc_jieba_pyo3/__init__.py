@@ -89,7 +89,7 @@ class OpenCC(_OpenCC):
         """
         return super().jieba_cut_all(input_text)
 
-    def jieba_tag(self, input_text: str, hmm: bool = True) -> List[tuple[str, str]]:
+    def jieba_tag(self, input_text: str, hmm: bool = True) -> List[Tuple[str, str]]:
         """
         Perform part-of-speech tagging on the input text using Jieba.
 

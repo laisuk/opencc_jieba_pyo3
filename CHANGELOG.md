@@ -12,6 +12,7 @@ the [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format.
 ### Changed
 
 - Added arg `separator` in `jieba_segment_join()` for segment method `"tag"`.
+- Optimized codes for modern IDE strict type check.
 
 ## [0.7.4] - 2026-04-10
 
