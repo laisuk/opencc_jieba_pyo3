@@ -66,14 +66,16 @@ def subcommand_segment(args):
         input_str = f.read()
 
     mode = args.mode
-    delim = args.delim if args.delim is not None else " "
+    delim = args.delim if args.delim not in (None, "", "/") else " "
+    separator = args.separator if args.separator not in (None, "") else "/"
+    hmm = not args.no_hmm
 
     if mode == "cut":
-        segments = opencc.jieba_cut(input_str)
+        segments = opencc.jieba_cut(input_str, hmm)
         output_str = delim.join(segments)
 
     elif mode == "search":
-        segments = opencc.jieba_cut_for_search(input_str)
+        segments = opencc.jieba_cut_for_search(input_str, hmm)
         output_str = delim.join(segments)
 
     elif mode == "full":
@@ -89,7 +91,7 @@ def subcommand_segment(args):
 
     elif mode == "tag":
         tagged = opencc.jieba_tag(input_str)
-        output_str = delim.join(f"{word}/{tag}" for word, tag in tagged)
+        output_str = delim.join(f"{word}{separator}{tag}" for word, tag in tagged)
 
     else:
         print(f"❌  Invalid segmentation mode: {mode}", file=sys.stderr)
@@ -101,7 +103,8 @@ def subcommand_segment(args):
     in_from = args.input if args.input else "<stdin>"
     out_to = args.output if args.output else "<stdout>"
     if sys.stderr.isatty():
-        print(f"Segmentation completed ({mode}): {in_from} -> {out_to}", file=sys.stderr)
+        print(f"\nSegmentation completed ({mode}, HMM:{hmm if mode != 'full' else 'None'}): {in_from} -> {out_to}",
+              file=sys.stderr)
     return 0
 
 
@@ -153,7 +156,7 @@ def subcommand_office(args):
             print(f"❌  Invalid Office file extension: {file_ext}", file=sys.stderr)
             print("   Valid extensions: .docx | .xlsx | .pptx | .odt | .ods | .odp | .epub", file=sys.stderr)
             return 1
-        office_format = file_ext[1:]
+        office_format = str(file_ext[1:])
 
     # Auto-append extension to output file if needed
     if auto_ext and output_file and not os.path.splitext(output_file)[1] and office_format in OFFICE_FORMATS:
@@ -217,8 +220,12 @@ def main():
                                 help="Write segmented text to <file>.")
     parser_segment.add_argument("-d", "--delim", metavar="<char>", default=" ",
                                 help="Delimiter to join segments")
+    parser_segment.add_argument("-s", "--separator", metavar="<char>", default="/",
+                                help="Separator for segment mode: tag")
+    parser_segment.add_argument('--no-hmm', action='store_true', default=False,
+                                help='Disable HMM')
     parser_segment.add_argument(
-        "--mode",
+        "-m", "--mode",
         choices=["cut", "search", "full", "tag"],
         default="cut",
         help="Segmentation mode"

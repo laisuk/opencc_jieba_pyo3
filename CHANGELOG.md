@@ -7,12 +7,16 @@ the [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format.
 
 ---
 
-## [0.7.5-beta1] - 2026-04-20
+## [0.7.5] - 2026-05-08
 
 ### Changed
 
 - Added arg `separator` in `jieba_segment_join()` for segment method `"tag"`.
 - Optimized codes for modern IDE strict type check.
+- Update `opencc-jieba-rs` to v0.7.6
+- CLI: optimized subcommand `segment`
+
+---
 
 ## [0.7.4] - 2026-04-10
 
