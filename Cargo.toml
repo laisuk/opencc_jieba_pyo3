@@ -20,6 +20,7 @@ include = [
     # Python bindings
     "/opencc_jieba_pyo3/**/*.py",
     "/opencc_jieba_pyo3/**/*.pyi",
+    "/opencc_jieba_pyo3/py.typed",
 ]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html

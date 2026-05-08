@@ -151,14 +151,21 @@ options:
 python -m opencc_jieba_pyo3 segment --help
 opencc-jieba-pyo3 convert segment --help
 
-usage: opencc-jieba-pyo3 segment [-h] [-i <file>] [-o <file>] [-d <char>] [--mode {cut,search,full,tag}] [--in-enc <encoding>] [--out-enc <encoding>]
+usage: opencc-jieba-pyo3 segment [-h] [-i <file>] [-o <file>] [-d <char>] [-s <char>] [--no-hmm] [-m {cut,search,full,tag}] [--in-enc <encoding>]
+                                 [--out-enc <encoding>]
 
-options:
+optional arguments:
   -h, --help            show this help message and exit
-  -i, --input <file>    Read input text from <file>. (default: None)
-  -o, --output <file>   Write segmented text to <file>. (default: None)
-  -d, --delim <char>    Delimiter to join segments (default: )
-  --mode {cut,search,full,tag}
+  -i <file>, --input <file>
+                        Read input text from <file>. (default: None)
+  -o <file>, --output <file>
+                        Write segmented text to <file>. (default: None)
+  -d <char>, --delim <char>
+                        Delimiter to join segments (default: )
+  -s <char>, --separator <char>
+                        Separator for segment mode: tag (default: /)
+  --no-hmm              Disable HMM (default: False)
+  -m {cut,search,full,tag}, --mode {cut,search,full,tag}
                         Segmentation mode (default: cut)
   --in-enc <encoding>   Encoding for input (default: UTF-8)
   --out-enc <encoding>  Encoding for output (default: UTF-8)
@@ -257,11 +264,12 @@ Unified Python interface for OpenCC and Jieba functionalities.
     - Perform Jieba part-of-speech tagging.
     - Returns `(word, tag)` tuples.
 
-- `jieba_segment_join(input: str, mode: str = "cut", delim: str = "/", hmm: bool = True) -> str`
+- `jieba_segment_join(input: str, mode: str = "cut", delim: str = " ", hmm: bool = True, separator: str = "/") -> str`
     - Segment text and join the result into a single string.
     - `mode`: One of `"cut"`, `"search"`, `"full"`, or `"tag"`.
     - `delim`: Delimiter used to join segments or tagged tokens.
     - `hmm`: Used by `"cut"`, `"search"`, and `"tag"` modes.
+    - `separator`: Separator between word and POS tag in `"tag"` mode.
 
 - `jieba_cut_and_join(input: str, delimiter: str = "/") -> str`
     - Deprecated compatibility wrapper for `jieba_segment_join(input, mode="cut", delim=delimiter)`.

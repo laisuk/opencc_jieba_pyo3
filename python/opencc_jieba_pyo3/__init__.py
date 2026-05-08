@@ -129,7 +129,7 @@ class OpenCC(_OpenCC):
             self,
             input_text: str,
             mode: str = "cut",
-            delim: str = "/",
+            delim: str = " ",
             hmm: bool = True,
             separator: str = "/",
     ) -> str:
@@ -142,7 +142,7 @@ class OpenCC(_OpenCC):
                      - "search" : Search engine mode
                      - "full"   : Full mode
                      - "tag"    : POS tagging mode (word/tag)
-        :param delim: Delimiter used to join tokens (default: "/")
+        :param delim: Delimiter used to join tokens (default: " ")
                       Example: delim="|" -> 我|来到|北京
         :param hmm: Enable Hidden Markov Model (HMM)
         :param separator: Separator between word and POS tag in ``mode="tag"``.
@@ -150,8 +150,6 @@ class OpenCC(_OpenCC):
         :return: Joined string result
 
         Notes:
-            - In "tag" mode, if delim="/" (default), it will be automatically
-              replaced with a space " " to avoid conflict with "word/tag" format.
             - You can fully customize output using both delim and separator.
 
         Examples:
@@ -188,11 +186,8 @@ class OpenCC(_OpenCC):
             return delim.join(super().jieba_cut_all(input_text))
 
         elif mode == "tag":
-            # Avoid conflict: "word/tag" vs delim="/"
-            join_delim = delim if delim != "/" else " "
-
             tagged = super().jieba_tag(input_text, hmm)
-            return join_delim.join(f"{w}{separator}{t}" for w, t in tagged)
+            return delim.join(f"{w}{separator}{t}" for w, t in tagged)
 
         else:
             raise ValueError(

@@ -4,12 +4,12 @@ Quick smoke test for opencc_jieba_pyo3 after:
     maturin develop --release
 
 Run:
-    python use_opencc_jieba_pyo3_dev.py
+    python use_opencc_jieba_pyo3.py
 """
 
 from __future__ import annotations
 
-from python.opencc_jieba_pyo3 import OpenCC
+from opencc_jieba_pyo3 import OpenCC
 
 
 def detect_auto_config(zho_code: int) -> str:
@@ -61,7 +61,7 @@ def main() -> None:
     cut_all = opencc.jieba_cut_all(text)
     print(f"Cut all: {cut_all}")
 
-    join_text = opencc.jieba_cut_and_join(text)
+    join_text = opencc.jieba_segment_join(text)
     print(f"Joined text: {join_text}")
 
     print("\n=== Jieba POS Tagging ===")

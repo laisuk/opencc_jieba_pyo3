@@ -90,7 +90,7 @@ def subcommand_segment(args):
         output_str = delim.join(segments)
 
     elif mode == "tag":
-        tagged = opencc.jieba_tag(input_str)
+        tagged = opencc.jieba_tag(input_str, hmm)
         output_str = delim.join(f"{word}{separator}{tag}" for word, tag in tagged)
 
     else:

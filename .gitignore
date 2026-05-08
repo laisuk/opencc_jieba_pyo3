@@ -22,3 +22,9 @@ __pycache__/
 
 # Wheels
 *.whl
+
+# Native extension build outputs
+*.pyd
+*.pdb
+*.so
+*.dylib

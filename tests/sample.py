@@ -1,3 +1,8 @@
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
 from opencc_jieba_pyo3 import OpenCC
 
 text = "“春眠不觉晓，处处闻啼鸟。”"
@@ -21,7 +26,7 @@ joined = opencc.jieba_segment_join(segment_text, mode="full", delim="/")
 print("full: " + joined)  # 我/独/独自/自/自来/来/来到/到/无/无人/人/人海/海/海岸/海岸线/岸/岸线/线
 
 joined = opencc.jieba_segment_join(segment_text, mode="tag", delim=" ", separator=":")
-print("tag: " + joined)  # 我/r 独自/d 来到/v 无人/n 海岸线/n
+print("tag: " + joined)  # 我:r 独自:d 来到:v 无人:n 海岸线:n
 
 # Keyword extraction (TextRank)
 keywords = opencc.jieba_keyword_extract_textrank(segment_text, top_k=3)

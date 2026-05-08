@@ -5,7 +5,7 @@ build-backend = "maturin"
 [project]
 name = "opencc_jieba_pyo3"
 dynamic = ["version"]
-requires-python = ">=3.7"
+requires-python = ">=3.8"
 description = "High-performance Chinese text conversion (Simplified ↔ Traditional), segmentation and keyword extraction powered by Rust, PyO3, Jieba and OpenCC lexicons."
 readme = "README.md"
 license = { text = "MIT" }

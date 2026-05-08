@@ -15,8 +15,9 @@ class OpenCC:
     Attributes:
         config (str): Current OpenCC config string.
     """
+    config: str
 
-    def __init__(self, config: str) -> None:
+    def __init__(self, config: str = "s2t") -> None:
         """
         Initialize a new OpenCC instance.
 
@@ -24,6 +25,14 @@ class OpenCC:
             config (str): Conversion config string.
         """
         self.config = config
+        ...
+
+    def set_config(self, config: str) -> None:
+        """
+        Set the OpenCC conversion configuration.
+
+        Invalid configuration values fall back to "s2t".
+        """
         ...
 
     @staticmethod
@@ -115,7 +124,7 @@ class OpenCC:
         """
         ...
 
-    def convert(self, input_text: str, punctuation: bool) -> str:
+    def convert(self, input_text: str, punctuation: bool = False) -> str:
         """
         Convert Chinese text using the current OpenCC config.
 
@@ -141,7 +150,7 @@ class OpenCC:
         """
         ...
 
-    def jieba_cut(self, input_text: str, hmm: bool) -> List[str]:
+    def jieba_cut(self, input_text: str, hmm: bool = True) -> List[str]:
         """
         Segment Chinese text using Jieba.
 
@@ -154,7 +163,7 @@ class OpenCC:
         """
         ...
 
-    def jieba_cut_for_search(self, input_text: str, hmm: bool) -> List[str]:
+    def jieba_cut_for_search(self, input_text: str, hmm: bool = True) -> List[str]:
         """
         Segment Chinese text using Jieba search mode.
 
@@ -184,7 +193,7 @@ class OpenCC:
         """
         ...
 
-    def jieba_tag(self, input_text: str, hmm: bool) -> List[Tuple[str, str]]:
+    def jieba_tag(self, input_text: str, hmm: bool = True) -> List[Tuple[str, str]]:
         """
         Perform Jieba part-of-speech tagging.
 
@@ -211,6 +220,29 @@ class OpenCC:
 
         Returns:
             str: Joined segmented string.
+        """
+        ...
+
+    def jieba_segment_join(
+            self,
+            input_text: str,
+            mode: str = "cut",
+            delim: str = " ",
+            hmm: bool = True,
+            separator: str = "/",
+    ) -> str:
+        """
+        Segment Chinese text and join the result into a string.
+
+        Args:
+            input_text (str): Input text.
+            mode (str): One of "cut", "search", "full", or "tag".
+            delim (str): Delimiter used to join segments or tagged tokens.
+            hmm (bool): Whether to use HMM for cut, search, and tag modes.
+            separator (str): Separator between word and POS tag in tag mode.
+
+        Returns:
+            str: Joined segmentation output.
         """
         ...
 

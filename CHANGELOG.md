@@ -11,10 +11,20 @@ the [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format.
 
 ### Changed
 
-- Added arg `separator` in `jieba_segment_join()` for segment method `"tag"`.
-- Optimized codes for modern IDE strict type check.
-- Update `opencc-jieba-rs` to v0.7.6
-- CLI: optimized subcommand `segment`
+- Added `separator` argument in `jieba_segment_join()` for segment method `"tag"`.
+- Changed `jieba_segment_join()` default `delim` from `"/"` to `" "` to avoid readability conflicts with the default POS
+  `separator="/"`.
+- Updated Python type stubs to match runtime defaults and expose `config`, `set_config()`, and `jieba_segment_join()`.
+- Updated `requires-python` metadata to `>=3.8` to match the `abi3-py38` build target.
+- Included `py.typed` in release packaging.
+- Updated `opencc-jieba-rs` to v0.7.6.
+- CLI: optimized subcommand `segment`.
+
+### Fixed
+
+- Fixed `segment --mode tag --no-hmm` so the CLI passes the HMM flag to `jieba_tag()`.
+- Updated sample scripts to use the public `opencc_jieba_pyo3` import path and current `jieba_segment_join()` API.
+- Removed tracked platform-specific native extension artifacts from the duplicate `python/` package tree.
 
 ---
 
