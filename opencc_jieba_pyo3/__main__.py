@@ -47,6 +47,8 @@ def subcommand_convert(args):
     in_from = args.input if args.input else "<stdin>"
     out_to = args.output if args.output else "<stdout>"
     if sys.stderr.isatty():
+        if output_str and not output_str.endswith("\n"):
+            print()
         print(f"Conversion completed ({config}): {in_from} -> {out_to}", file=sys.stderr)
     return 0
 
@@ -103,7 +105,9 @@ def subcommand_segment(args):
     in_from = args.input if args.input else "<stdin>"
     out_to = args.output if args.output else "<stdout>"
     if sys.stderr.isatty():
-        print(f"\nSegmentation completed ({mode}, HMM:{hmm if mode != 'full' else 'None'}): {in_from} -> {out_to}",
+        if output_str and not output_str.endswith("\n"):
+            print()
+        print(f"Segmentation completed ({mode}, HMM:{hmm if mode != 'full' else 'None'}): {in_from} -> {out_to}",
               file=sys.stderr)
     return 0
 
