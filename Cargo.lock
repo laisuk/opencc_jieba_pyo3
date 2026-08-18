@@ -380,9 +380,8 @@ checksum = "9f7c3e4beb33f85d45ae3e3a1792185706c8e16d043238c593331cc7cd313b50"
 
 [[package]]
 name = "opencc-jieba-rs"
-version = "0.7.6"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2686f7ef4095fa4644dd6c443b0dd0fa6b59d1bf2e831b54c79b0dc452f39cb4"
+version = "0.8.0"
+source = "git+https://github.com/laisuk/opencc-jieba-rs.git?branch=master#f7abac477d608533dfece0747c98fd7f004c2570"
 dependencies = [
  "include-flate",
  "jieba-rs",
@@ -396,7 +395,7 @@ dependencies = [
 
 [[package]]
 name = "opencc_jieba_pyo3"
-version = "0.7.5"
+version = "0.7.6"
 dependencies = [
  "opencc-jieba-rs",
  "pyo3",
