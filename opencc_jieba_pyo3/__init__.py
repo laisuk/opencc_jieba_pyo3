@@ -1,10 +1,100 @@
 from .opencc_jieba_pyo3 import OpenCC as _OpenCC
-from typing import List, Tuple, Optional
+from typing import List, Tuple, Optional, TypedDict
+
+_CustomDictPair = Tuple[str, str]
+
+
+class _CustomDictSpecRequired(TypedDict):
+    slot: str
+    pairs: List[_CustomDictPair]
+
+
+class CustomDictSpec(_CustomDictSpecRequired, total=False):
+    mode: str
+
+
+class _CustomDictFileSpecRequired(TypedDict):
+    slot: str
+    files: List[str]
+
+
+class CustomDictFileSpec(_CustomDictFileSpecRequired, total=False):
+    mode: str
+
+
+class _UserDictEntryRequired(TypedDict):
+    word: str
+    freq: int
+
+
+class UserDictEntry(_UserDictEntryRequired, total=False):
+    tag: str
 
 
 class OpenCC(_OpenCC):
-    def __init__(self, config="s2t"):
-        self.config = super().config if super().is_valid_config(config) else "s2t"
+    def __init__(self, config: str = "s2t"):
+        """
+        Initialize a converter with the selected OpenCC configuration.
+
+        The native PyO3 base instance is created by ``__new__`` before this
+        Python ``__init__`` runs, so this wrapper must not call
+        ``super().__init__()``.
+
+        Invalid configurations fall back to ``"s2t"`` for compatibility with
+        the existing Python wrapper behavior.
+        """
+        if super().is_valid_config(config):
+            super().apply_config(config)
+        else:
+            self.config = "s2t"
+
+    @classmethod
+    def from_dicts(
+            cls,
+            config: str = "s2t",
+            specs: Optional[List[CustomDictSpec]] = None,
+    ) -> "OpenCC":
+        """Create a converter with in-memory OpenCC custom dictionaries."""
+        cc = cls(config)
+        if specs:
+            cc.load_custom_dicts(specs)
+        return cc
+
+    @classmethod
+    def from_dict_files(
+            cls,
+            config: str = "s2t",
+            specs: Optional[List[CustomDictFileSpec]] = None,
+    ) -> "OpenCC":
+        """Create a converter with OpenCC custom dictionary files."""
+        cc = cls(config)
+        if specs:
+            cc.load_custom_dict_files(specs)
+        return cc
+
+    @classmethod
+    def from_user_dict_entries(
+            cls,
+            config: str = "s2t",
+            entries: Optional[List[UserDictEntry]] = None,
+    ) -> "OpenCC":
+        """Create a converter with in-memory Jieba user-dictionary entries."""
+        cc = cls(config)
+        if entries:
+            cc.load_user_dict_entries(entries)
+        return cc
+
+    @classmethod
+    def from_user_dict_files(
+            cls,
+            config: str = "s2t",
+            files: Optional[List[str]] = None,
+    ) -> "OpenCC":
+        """Create a converter with Jieba user-dictionary files."""
+        cc = cls(config)
+        if files:
+            cc.load_user_dict_files(files)
+        return cc
 
     def set_config(self, config):
         """
@@ -36,6 +126,27 @@ class OpenCC(_OpenCC):
         :return: Current config string
         """
         return self.config
+
+    def load_user_dict_entries(self, entries: List[UserDictEntry]) -> None:
+        """Post-load structured Jieba user-dictionary entries."""
+        super().load_user_dict_entries(entries)
+
+    def load_user_dict_files(self, files: List[str]) -> None:
+        """Post-load one or more Jieba user-dictionary files in order."""
+        super().load_user_dict_files(files)
+
+    def load_custom_dicts(self, specs: List[CustomDictSpec]) -> None:
+        """Post-load in-memory OpenCC custom conversion dictionaries."""
+        super().load_custom_dicts(specs)
+
+    def load_custom_dict_files(self, specs: List[CustomDictFileSpec]) -> None:
+        """Post-load OpenCC custom conversion dictionary files."""
+        super().load_custom_dict_files(specs)
+
+    @staticmethod
+    def available_slots() -> List[str]:
+        """Return canonical OpenCC dictionary slot names."""
+        return _OpenCC.available_slots()
 
     def zho_check(self, input_text):
         """
@@ -294,3 +405,11 @@ class OpenCC(_OpenCC):
         :return: A list of (keyword, weight) tuples.
         """
         return super().jieba_keyword_weight_tfidf(input_text, top_k, allowed_pos)
+
+
+__all__ = [
+    "OpenCC",
+    "CustomDictSpec",
+    "CustomDictFileSpec",
+    "UserDictEntry",
+]

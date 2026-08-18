@@ -1,4 +1,31 @@
-from typing import List, Tuple, Optional
+from typing import List, Tuple, Optional, TypedDict
+
+
+class _UserDictEntryRequired(TypedDict):
+    word: str
+    freq: int
+
+
+class UserDictEntry(_UserDictEntryRequired, total=False):
+    tag: str
+
+
+class _CustomDictSpecRequired(TypedDict):
+    slot: str
+    pairs: List[Tuple[str, str]]
+
+
+class CustomDictSpec(_CustomDictSpecRequired, total=False):
+    mode: str
+
+
+class _CustomDictFileSpecRequired(TypedDict):
+    slot: str
+    files: List[str]
+
+
+class CustomDictFileSpec(_CustomDictFileSpecRequired, total=False):
+    mode: str
 
 
 class OpenCC:
@@ -148,6 +175,67 @@ class OpenCC:
             int: Integer code representing detected Chinese type.
             (1: Traditional, 2: Simplified, 0: Others)
         """
+        ...
+
+    def load_user_dict_entries(self, entries: List[UserDictEntry]) -> None:
+        """
+        Post-load structured Jieba user-dictionary entries onto this instance.
+
+        Each entry contains required ``word`` and ``freq`` fields and an
+        optional ``tag`` field.
+
+        This affects Jieba segmentation only. It does not modify OpenCC
+        conversion dictionary slots.
+
+        Example:
+            >>> cc = OpenCC("s2t")
+            >>> cc.load_user_dict_entries([
+            ...     {"word": "帕兰蒂尔", "freq": 100000, "tag": "nz"}
+            ... ])
+        """
+        ...
+
+    def load_user_dict(self, path: str) -> None:
+        """
+        Post-load one Jieba user-dictionary file onto this instance.
+
+        The file must use Jieba user-dictionary format::
+
+            word freq [tag]
+
+        ``freq`` is required and ``tag`` is optional.
+        """
+        ...
+
+    def load_user_dict_files(self, files: List[str]) -> None:
+        """
+        Post-load multiple Jieba user-dictionary files in the supplied order.
+
+        This is the multi-file convenience wrapper over ``load_user_dict()``.
+        """
+        ...
+
+    def load_custom_dicts(self, specs: List[CustomDictSpec]) -> None:
+        """
+        Post-load custom OpenCC conversion dictionary entries onto this instance.
+
+        Each spec contains a required ``slot`` and ``pairs`` field plus an
+        optional ``mode`` field: ``"append"`` (default) or ``"override"``.
+        """
+        ...
+
+    def load_custom_dict_files(self, specs: List[CustomDictFileSpec]) -> None:
+        """
+        Post-load custom OpenCC conversion dictionary files onto this instance.
+
+        Each spec contains a required ``slot`` and ``files`` field plus an
+        optional ``mode`` field: ``"append"`` (default) or ``"override"``.
+        """
+        ...
+
+    @staticmethod
+    def available_slots() -> List[str]:
+        """Return canonical custom dictionary slot names from the Rust SSOT."""
         ...
 
     def jieba_cut(self, input_text: str, hmm: bool = True) -> List[str]:

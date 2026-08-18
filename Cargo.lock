@@ -395,7 +395,7 @@ dependencies = [
 
 [[package]]
 name = "opencc_jieba_pyo3"
-version = "0.7.6"
+version = "0.8.0"
 dependencies = [
  "opencc-jieba-rs",
  "pyo3",

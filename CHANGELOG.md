@@ -7,6 +7,43 @@ the [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format.
 
 ---
 
+## [0.8.0] - Unreleased
+
+### Added
+
+- Added post-load custom OpenCC conversion dictionaries with `CustomDictSpec` and `CustomDictFileSpec`, supporting
+  per-slot `append` and `override` modes.
+- Added `OpenCC.load_custom_dicts()` and `OpenCC.load_custom_dict_files()` for applying in-memory mappings and plaintext
+  dictionary files to the current converter instance.
+- Added `OpenCC.available_slots()` to expose canonical custom-dictionary slot names from the Rust core.
+- Added `OpenCC.from_dicts()` and `OpenCC.from_dict_files()` convenience constructors for instances initialized with
+  custom OpenCC conversion dictionaries.
+- Added structured Jieba user-dictionary entries with `UserDictEntry`, requiring `word` and `freq` with an optional POS
+  `tag`.
+- Added `OpenCC.load_user_dict_entries()` and `OpenCC.load_user_dict_files()` for post-loading Jieba user dictionaries
+  onto the current converter instance.
+- Added `OpenCC.from_user_dict_entries()` and `OpenCC.from_user_dict_files()` convenience constructors for instances
+  initialized with Jieba user dictionaries.
+- Added Python type definitions for custom OpenCC dictionaries and Jieba user-dictionary entries.
+- Added CLI `-D` / `--custom-dict <slot:mode:path>` for loading custom OpenCC dictionary files. The option may be
+  repeated and supports Windows drive-letter paths.
+- Added CLI `-U` / `--user-dict-file <file>` for loading Jieba user-dictionary files. The option may be repeated.
+- Added custom OpenCC and Jieba user-dictionary support to the `convert`, `segment`, and `office` CLI subcommands.
+- Added Python integration tests covering conversion, Jieba segmentation and tagging, keyword extraction, custom
+  dictionaries, user dictionaries, config switching, and combined Jieba + OpenCC custom phrase conversion.
+
+### Changed
+
+- Updated `opencc-jieba-rs` from v0.7.6 to the v0.8.0 core API.
+- Custom OpenCC dictionaries and Jieba user dictionaries now use the Rust core's post-load model, allowing both
+  dictionary layers to compose on the same `OpenCC` instance.
+- CLI converter initialization now loads Jieba user dictionaries before custom OpenCC dictionaries so phrase mappings
+  can use the customized Jieba segmentation.
+- Refactored shared CLI dictionary option parsing and converter construction across `convert`, `segment`, and `office`.
+- Updated Python type stubs to expose custom dictionary, user dictionary, and available-slot APIs.
+
+---
+
 ## [0.7.5] - 2026-05-08
 
 ### Changed
@@ -102,7 +139,7 @@ the [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format.
 
 ### Added
 
-- Add set_config(), get_config() and supported_configs()
+- Add set_config (), get_config () and supported_configs ()
 - Add opencc_jieba_py03 executable script
 
 ### Changed
