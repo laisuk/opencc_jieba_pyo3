@@ -21,6 +21,8 @@ algorithms.
 - Chinese word (Both Traditional and Simplified) segmentation (Jieba).
 - Keyword extraction (TF-IDF, TextRank).
 - Utility functions for punctuation handling and language detection.
+- Custom OpenCC conversion dictionaries from in-memory mappings or UTF-8 files.
+- Jieba user dictionaries from structured entries or UTF-8 files.
 
 ---
 
@@ -116,8 +118,165 @@ print(kw_weights_tfidf)  # [('海岸线', 1.995445949425), ('独自', 1.84464621
 ```
 
 ---
+## Custom dictionaries (v0.8.0, unreleased)
 
-### CLI
+Version 0.8.0 adds two complementary dictionary layers:
+
+- **Jieba user dictionaries** teach the tokenizer how to keep domain-specific words together and optionally assign a
+  part-of-speech tag. They affect segmentation, tagging, and keyword extraction, but do not add OpenCC conversions.
+- **Custom OpenCC dictionaries** add or replace mappings in a conversion-dictionary slot. They affect conversion, but
+  do not change Jieba's tokenizer.
+
+Both layers can be loaded into the same `OpenCC` instance. When a phrase needs custom segmentation and custom
+conversion, load the Jieba entries first and the OpenCC mappings second.
+
+### Public Python API
+
+The package exports `UserDictEntry`, `CustomDictSpec`, and `CustomDictFileSpec` typed dictionaries:
+
+```python
+UserDictEntry = {"word": str, "freq": int, "tag": str}  # tag is optional
+CustomDictSpec = {
+    "slot": str,
+    "pairs": list[tuple[str, str]],
+    "mode": str,  # optional: "append" (default) or "override"
+}
+CustomDictFileSpec = {
+    "slot": str,
+    "files": list[str],
+    "mode": str,  # optional: "append" (default) or "override"
+}
+```
+
+`OpenCC` exposes these dictionary APIs:
+
+- `OpenCC.from_user_dict_entries(config="s2t", entries=None) -> OpenCC`
+- `OpenCC.from_user_dict_files(config="s2t", files=None) -> OpenCC`
+- `OpenCC.from_dicts(config="s2t", specs=None) -> OpenCC`
+- `OpenCC.from_dict_files(config="s2t", specs=None) -> OpenCC`
+- `load_user_dict_entries(entries) -> None`
+- `load_user_dict(path) -> None`
+- `load_user_dict_files(files) -> None`
+- `load_custom_dicts(specs) -> None`
+- `load_custom_dict_files(specs) -> None`
+- `OpenCC.available_slots() -> list[str]`
+
+Use `OpenCC.available_slots()` to get the canonical OpenCC slot names accepted by `slot`. Slot matching is
+case-insensitive; surrounding whitespace and an optional `.txt` suffix are accepted.
+
+For a custom OpenCC dictionary, `append` merges entries into the selected slot and uses the last value when a source
+key is duplicated. `override` clears the selected slot before inserting the supplied mappings. Custom mappings remain
+attached to the instance when switching configs and take effect whenever the active config uses their slot.
+
+### In-memory dictionaries
+
+This example preserves a domain term as one Jieba token, gives it an `nz` tag, and adds a phrase conversion:
+
+```python
+from typing import List
+
+from opencc_jieba_pyo3 import CustomDictSpec, OpenCC, UserDictEntry
+
+user_dict: List[UserDictEntry] = [
+  {"word": "帕兰蒂尔", "freq": 100_000, "tag": "nz"},
+]
+custom_dicts: List[CustomDictSpec] = [
+  {
+    "slot": "STPhrases",
+    "pairs": [("帕兰蒂尔", "柏蘭蒂爾")],
+    "mode": "append",
+  }
+]
+
+cc = OpenCC.from_user_dict_entries(
+  "s2t",
+  user_dict,
+)
+cc.load_custom_dicts(custom_dicts)
+
+print(cc.jieba_cut("帕兰蒂尔", hmm=False))
+# ['帕兰蒂尔']
+print(cc.jieba_tag("帕兰蒂尔", hmm=False))
+# [('帕兰蒂尔', 'nz')]
+print(cc.convert("帕兰蒂尔是一家公司"))
+# 柏蘭蒂爾是一家公司
+```
+
+The equivalent post-load form is useful when the converter already exists:
+
+```python
+from typing import List
+
+from opencc_jieba_pyo3 import CustomDictSpec, OpenCC, UserDictEntry
+
+user_dict: List[UserDictEntry] = [
+    {"word": "帕兰蒂尔", "freq": 100_000, "tag": "nz"},
+]
+custom_dicts: List[CustomDictSpec] = [
+    {"slot": "STPhrases", "pairs": [("帕兰蒂尔", "柏蘭蒂爾")]},
+]
+
+cc = OpenCC("s2t")
+cc.load_user_dict_entries(user_dict)
+cc.load_custom_dicts(custom_dicts)
+```
+
+### Dictionary files
+
+Jieba user-dictionary files are UTF-8 text using one entry per line. `freq` is required and `tag` is optional:
+
+```text
+word freq [tag]
+帕兰蒂尔 100000 nz
+```
+
+Custom OpenCC dictionary files are UTF-8, tab-separated source/target mappings:
+
+```text
+帕兰蒂尔<TAB>柏蘭蒂爾
+```
+
+Load one or more files as follows:
+
+```python
+from typing import List
+
+from opencc_jieba_pyo3 import CustomDictFileSpec, OpenCC
+
+custom_dict_files: List[CustomDictFileSpec] = [
+    {
+        "slot": "STPhrases",
+        "files": ["custom_st_phrases.txt"],
+        "mode": "append",
+    }
+]
+
+cc = OpenCC.from_user_dict_files("s2t", ["jieba_user_dict.txt"])
+cc.load_custom_dict_files(custom_dict_files)
+
+# A single Jieba file can also be loaded with:
+cc.load_user_dict("another_user_dict.txt")
+```
+
+Multiple Jieba files are applied in the supplied order. Custom OpenCC files in a specification are parsed before that
+specification is applied.
+
+The same file-backed features are available to the `convert`, `segment`, and `office` commands. Repeat either option
+to load multiple dictionaries:
+
+```sh
+opencc-jieba-pyo3 convert -c s2t \
+  -U jieba_user_dict.txt \
+  -D STPhrases:append:custom_st_phrases.txt \
+  -i input.txt -o output.txt
+```
+
+On Windows, drive-letter paths are supported in `-D` values, for example
+`STPhrases:append:R:\dicts\custom_st_phrases.txt`.
+
+---
+
+## CLI
 
 You can also use the CLI interface via Python module or Python script:  
 Features are:
