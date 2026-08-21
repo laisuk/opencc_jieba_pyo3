@@ -51,7 +51,6 @@ class OpenCC:
         Args:
             config (str): Conversion config string.
         """
-        self.config = config
         ...
 
     def set_config(self, config: str) -> None:

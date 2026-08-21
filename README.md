@@ -132,27 +132,37 @@ Features are:
 Module: python -m opencc_jieba_pyo3 convert --help
 Script: opencc-jieba-pyo3 convert --help
 
-usage: opencc_jieba_pyo3 convert [-h] [-i <file>] [-o <file>] [-c <conversion>] [-p] [--in-enc <encoding>] [--out-enc <encoding>]
+usage: opencc-jieba-pyo3 convert [-h] [-i <file>] [-o <file>] [-c <conversion>] [-p] [--in-enc <encoding>] [--out-enc <encoding>] [-D <slot:mode:path>]
+                                 [-U <file>]
 
-options:
+optional arguments:
   -h, --help            show this help message and exit
-  -i, --input <file>    Read original text from <file>.
-  -o, --output <file>   Write converted text to <file>.
-  -c, --config <conversion>
-                        Conversion configuration: [s2t|s2tw|s2twp|s2hk|t2s|tw2s|tw2sp|hk2s|jp2t|t2jp]
-  -p, --punct           Punctuation conversion
-  --in-enc <encoding>   Encoding for input
-  --out-enc <encoding>  Encoding for output
+  -i <file>, --input <file>
+                        Read original text from <file>. (default: None)
+  -o <file>, --output <file>
+                        Write converted text to <file>. (default: None)
+  -c <conversion>, --config <conversion>
+                        Configuration: s2t|s2tw|s2twp|s2hk|s2hkp|t2s|t2tw|t2twp|t2hk|t2hkp|tw2s|tw2sp|tw2t|tw2tp|hk2s|hk2sp|hk2t|hk2tp|jp2t|t2jp (default: None)
+  -p, --punct           Enable punctuation conversion. (default: False)
+  --in-enc <encoding>   Encoding for input. (default: UTF-8)
+  --out-enc <encoding>  Encoding for output. (default: UTF-8)
+  -D <slot:mode:path>, --custom-dict <slot:mode:path>
+                        Load custom OpenCC dictionary file. Format: slot:mode:path, e.g. STPhrases:append:custom.txt. Can be used multiple times. Available
+                        slots: STCharacters|STPhrases|TSCharacters|TSPhrases|TWPhrases|TWPhrasesRev|HKPhrases|HKPhrasesRev|TWVariants|TWVariantsPhrases|TWVariant
+                        sRev|TWVariantsRevPhrases|HKVariants|HKVariantsPhrases|HKVariantsRev|HKVariantsRevPhrases|JPSCharacters|JPSCharactersRev|JPSPhrases
+                        (default: None)
+  -U <file>, --user-dict-file <file>
+                        Load Jieba user dictionary file using 'word freq [tag]' format. Can be used multiple times. (default: None)
 ```
 
 #### segment
 
 ```
 python -m opencc_jieba_pyo3 segment --help
-opencc-jieba-pyo3 convert segment --help
+opencc-jieba-pyo3 segment --help
 
 usage: opencc-jieba-pyo3 segment [-h] [-i <file>] [-o <file>] [-d <char>] [-s <char>] [--no-hmm] [-m {cut,search,full,tag}] [--in-enc <encoding>]
-                                 [--out-enc <encoding>]
+                                 [--out-enc <encoding>] [-D <slot:mode:path>] [-U <file>]
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -161,33 +171,49 @@ optional arguments:
   -o <file>, --output <file>
                         Write segmented text to <file>. (default: None)
   -d <char>, --delim <char>
-                        Delimiter to join segments (default: )
+                        Delimiter to join segments. (default: )
   -s <char>, --separator <char>
-                        Separator for segment mode: tag (default: /)
-  --no-hmm              Disable HMM (default: False)
+                        Separator for segment mode: tag. (default: /)
+  --no-hmm              Disable HMM. (default: False)
   -m {cut,search,full,tag}, --mode {cut,search,full,tag}
-                        Segmentation mode (default: cut)
-  --in-enc <encoding>   Encoding for input (default: UTF-8)
-  --out-enc <encoding>  Encoding for output (default: UTF-8)
+                        Segmentation mode. (default: cut)
+  --in-enc <encoding>   Encoding for input. (default: UTF-8)
+  --out-enc <encoding>  Encoding for output. (default: UTF-8)
+  -D <slot:mode:path>, --custom-dict <slot:mode:path>
+                        Load custom OpenCC dictionary file. Format: slot:mode:path, e.g. STPhrases:append:custom.txt. Can be used multiple times. Available
+                        slots: STCharacters|STPhrases|TSCharacters|TSPhrases|TWPhrases|TWPhrasesRev|HKPhrases|HKPhrasesRev|TWVariants|TWVariantsPhrases|TWVariant
+                        sRev|TWVariantsRevPhrases|HKVariants|HKVariantsPhrases|HKVariantsRev|HKVariantsRevPhrases|JPSCharacters|JPSCharactersRev|JPSPhrases
+                        (default: None)
+  -U <file>, --user-dict-file <file>
+                        Load Jieba user dictionary file using 'word freq [tag]' format. Can be used multiple times. (default: None)
 ```
 
 #### office
 
 ```
 python -m opencc_jieba_pyo3 office --help                                                     
-usage: opencc_jieba_pyo3 office [-h] [-i <file>] [-o <file>] [-c <conversion>] [-p] [-f <format>] [--auto-ext] [--keep-font]
+usage: opencc-jieba-pyo3 office [-h] [-i <file>] [-o <file>] [-c <conversion>] [-p] [-f <format>] [--auto-ext] [--keep-font] [-D <slot:mode:path>] [-U <file>]
 
-options:
+optional arguments:
   -h, --help            show this help message and exit
-  -i, --input <file>    Input Office document from <file>.
-  -o, --output <file>   Output Office document to <file>.
-  -c, --config <conversion>
-                        conversion: s2t|s2tw|s2twp|s2hk|t2s|tw2s|tw2sp|hk2s|jp2t|t2jp
-  -p, --punct           Punctuation conversion
-  -f, --format <format>
-                        Target Office format (e.g., docx, xlsx, pptx, odt, ods, odp, epub)
-  --auto-ext            Auto-append extension to output file
-  --keep-font           Preserve font-family information in Office content)
+  -i <file>, --input <file>
+                        Input Office document from <file>. (default: None)
+  -o <file>, --output <file>
+                        Output Office document to <file>. (default: None)
+  -c <conversion>, --config <conversion>
+                        Configuration: s2t|s2tw|s2twp|s2hk|s2hkp|t2s|t2tw|t2twp|t2hk|t2hkp|tw2s|tw2sp|tw2t|tw2tp|hk2s|hk2sp|hk2t|hk2tp|jp2t|t2jp (default: None)
+  -p, --punct           Enable punctuation conversion. (default: False)
+  -f <format>, --format <format>
+                        Target Office format (e.g. docx, xlsx, pptx, odt, ods, odp, epub). (default: None)
+  --auto-ext            Auto-append extension to output file. (default: False)
+  --keep-font           Preserve font-family information in Office content. (default: False)
+  -D <slot:mode:path>, --custom-dict <slot:mode:path>
+                        Load custom OpenCC dictionary file. Format: slot:mode:path, e.g. STPhrases:append:custom.txt. Can be used multiple times. Available
+                        slots: STCharacters|STPhrases|TSCharacters|TSPhrases|TWPhrases|TWPhrasesRev|HKPhrases|HKPhrasesRev|TWVariants|TWVariantsPhrases|TWVariant
+                        sRev|TWVariantsRevPhrases|HKVariants|HKVariantsPhrases|HKVariantsRev|HKVariantsRevPhrases|JPSCharacters|JPSCharactersRev|JPSPhrases
+                        (default: None)
+  -U <file>, --user-dict-file <file>
+                        Load Jieba user dictionary file using 'word freq [tag]' format. Can be used multiple times. (default: None)
 ```
 
 ```sh
