@@ -203,10 +203,19 @@ jobs:
         with:
           command: sdist
 
-      - name: Verify sdist builds from source
+      - name: Build wheel from sdist
         run: |
-          python -m pip install --upgrade pip
           python -m pip wheel target/wheels/*.tar.gz --wheel-dir sdist-test -v
+
+      - name: Install rebuilt wheel
+        run: |
+          python -m pip install --force-reinstall sdist-test/*.whl
+
+      - name: Smoke-test rebuilt wheel
+        working-directory: /tmp
+        run: |
+          python -c "import opencc_jieba_pyo3; print(opencc_jieba_pyo3.__file__)"
+          python -c "from opencc_jieba_pyo3 import OpenCC; assert OpenCC('s2t').convert('八千里路云和月') == '八千里路雲和月'"
 
       - name: Upload sdist artifact
         uses: actions/upload-artifact@v4
