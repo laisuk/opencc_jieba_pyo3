@@ -63,6 +63,31 @@ maturin build --release
 pip install ./target/wheels/opencc_jieba_pyo3-<version>-cp<pyver>-abi3-<platform>.whl
 ```
 
+### Install from source distribution
+
+Source distributions (`.tar.gz`) can be installed directly with `pip`. A Rust toolchain is required because the native
+extension is compiled locally.
+
+```sh
+pip install opencc_jieba_pyo3-0.8.0.tar.gz
+```
+
+To force a source build from PyPI instead of using a prebuilt wheel:
+
+```sh
+pip install --no-binary opencc-jieba-pyo3 opencc-jieba-pyo3
+```
+
+The package uses the Python Stable ABI (`abi3`) with Python 3.8 as the minimum supported version. A source build
+therefore produces a platform-specific `cp38-abi3` wheel, for example:
+
+```text
+opencc_jieba_pyo3-0.8.0-cp38-abi3-win_amd64.whl
+```
+
+> **Windows:** Some RAM disks or non-standard temporary filesystems may cause `pip` to fail with `WinError 1` during a
+> source build. If this occurs, set `TEMP` and `TMP` to a normal local filesystem and retry.
+
 Or for development:
 
 ```sh
@@ -500,6 +525,7 @@ The class combines OpenCC conversion dictionaries with a Jieba tokenizer.
 - `jieba_keyword_extract_textrank(input: str, top_k: int = 10, allowed_pos: list[str] | None = None) -> list[str]`
 - `jieba_keyword_extract_tfidf(input: str, top_k: int = 10, allowed_pos: list[str] | None = None) -> list[str]`
 -
+
 `jieba_keyword_weight_textrank(input: str, top_k: int = 10, allowed_pos: list[str] | None = None) -> list[tuple[str, float]]`
 -
 `jieba_keyword_weight_tfidf(input: str, top_k: int = 10, allowed_pos: list[str] | None = None) -> list[tuple[str, float]]`
