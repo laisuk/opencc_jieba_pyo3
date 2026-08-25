@@ -177,7 +177,7 @@ jobs:
           path: target/wheels/*.whl
 
   build-sdist:
-    name: Build sdist
+    name: Build and verify sdist
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -191,14 +191,33 @@ jobs:
         with:
           python-version: "3.10"
 
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
+
       - name: Build sdist
         uses: PyO3/maturin-action@v1
         with:
           command: sdist
           args: --out dist
 
+      - name: Build wheel from sdist
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip wheel dist/*.tar.gz --wheel-dir sdist-wheel-test -v
+
+      - name: Install and smoke-test rebuilt wheel
+        run: |
+          python -m pip install --force-reinstall sdist-wheel-test/*.whl
+          python -c "from opencc_jieba_pyo3 import OpenCC; assert OpenCC('s2t').convert('八千里路云和月') == '八千里路雲和月'"
+
       - name: Upload sdist artifact
         uses: actions/upload-artifact@v4
         with:
           name: sdist
           path: dist/*.tar.gz
+
+      - name: Upload wheel rebuilt from sdist
+        uses: actions/upload-artifact@v4
+        with:
+          name: sdist-rebuilt-wheel
+          path: sdist-wheel-test/*.whl
