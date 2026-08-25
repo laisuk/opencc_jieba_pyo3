@@ -464,6 +464,81 @@ class TestOpenCCJieba(unittest.TestCase):
         self.assertIn("HKPhrases", slots)
         self.assertIn("HKPhrasesRev", slots)
 
+    def test_normalize_compat_then_convert_golden_phrase(self):
+        cc = OpenCC("t2s")
+
+        input_text = "天龍八部書裡的喬峰是契丹人"
+
+        normalized = cc.normalize_compat(input_text)
+        converted = cc.convert(normalized)
+
+        self.assertEqual(normalized, "天龍八部書裡的喬峰是契丹人")
+        self.assertEqual(converted, "天龙八部书里的乔峰是契丹人")
+
+    def test_normalize_compat_extended(self):
+        cc = OpenCC("t2s")
+
+        input_text = "聼聼竒羙⽟䂖甁噐⾳"
+
+        normalized = cc.normalize_compat_extended(input_text)
+        converted = cc.convert(normalized)
+
+        self.assertEqual(normalized, "聽聽奇美玉石瓶器音")
+        self.assertEqual(converted, "听听奇美玉石瓶器音")
+
+    def test_hk_custom_phrase_requires_jieba_user_term(self):
+        """Regression: a custom phrase cannot match when Jieba splits its source."""
+        custom_specs: List[CustomDictSpec] = [
+            {
+                "slot": "HKPhrasesRev",
+                "pairs": [("細路哥", "小男孩")],
+                "mode": "append",
+            }
+        ]
+
+        cc = OpenCC("hk2sp")
+
+        cc.load_custom_dicts(custom_specs)
+
+        self.assertEqual(
+            cc.jieba_cut("這個細路哥很靈活", hmm=True),
+            ["這個", "細路", "哥", "很", "靈活"],
+        )
+        self.assertEqual(
+            cc.convert("這個細路哥很靈活"),
+            "这个细路哥很灵活",
+        )
+
+    def test_hk_custom_phrase_composes_with_jieba_user_term(self):
+        """Regression: -U-style Jieba term enables the -D-style phrase mapping."""
+        user_dict: List[UserDictEntry] = [
+            {
+                "word": "細路哥",
+                "freq": 3,
+            }
+        ]
+
+        custom_specs: List[CustomDictSpec] = [
+            {
+                "slot": "HKPhrasesRev",
+                "pairs": [("細路哥", "小男孩")],
+                "mode": "append",
+            }
+        ]
+
+        cc = OpenCC("hk2sp")
+        cc.load_user_dict_entries(user_dict)
+        cc.load_custom_dicts(custom_specs)
+
+        self.assertEqual(
+            cc.jieba_cut("這個細路哥很靈活", hmm=True),
+            ["這個", "細路哥", "很", "靈活"],
+        )
+        self.assertEqual(
+            cc.convert("這個細路哥很靈活"),
+            "这个小男孩很灵活",
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

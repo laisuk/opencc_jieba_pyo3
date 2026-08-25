@@ -381,13 +381,14 @@ checksum = "9f7c3e4beb33f85d45ae3e3a1792185706c8e16d043238c593331cc7cd313b50"
 [[package]]
 name = "opencc-jieba-rs"
 version = "0.8.0"
-source = "git+https://github.com/laisuk/opencc-jieba-rs.git?branch=master#b812645efe7a2a05e44cdeda6b0d002044df002c"
+source = "git+https://github.com/laisuk/opencc-jieba-rs.git?branch=master#49d59fa3cc24fb9bed13493b136613961fd92458"
 dependencies = [
  "include-flate",
  "jieba-rs",
  "rayon",
  "rayon-core",
  "regex",
+ "rustc-hash",
  "serde",
  "serde_json",
  "zstd",
@@ -618,6 +619,12 @@ name = "rle-decode-fast"
 version = "1.0.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3582f63211428f83597b51b2ddb88e2a91a9d52d12831f9d08f5e624e8977422"
+
+[[package]]
+name = "rustc-hash"
+version = "2.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "357703d41365b4b27c590e3ed91eabb1b663f07c4c084095e60cbed4362dff0d"
 
 [[package]]
 name = "rustversion"

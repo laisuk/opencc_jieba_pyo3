@@ -25,12 +25,21 @@ the [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format.
 - Added `OpenCC.from_user_dict_entries()` and `OpenCC.from_user_dict_files()` convenience constructors for instances
   initialized with Jieba user dictionaries.
 - Added Python type definitions for custom OpenCC dictionaries and Jieba user-dictionary entries.
+- Added Unicode compatibility normalization APIs:
+    - `OpenCC.normalize_compat()` for CJK compatibility ideograph normalization.
+    - `OpenCC.normalize_unicode_compat()` for extended Unicode compatibility and variant normalization.
+    - `OpenCC.normalize_compat_extended()` for combined extended Unicode and CJK compatibility normalization.
+- Added CLI `-n` / `--norm-compat` to normalize CJK compatibility ideographs before conversion.
+- Added CLI `-E` / `--norm-compat-extended` to apply extended Unicode compatibility normalization before conversion;
+  this takes precedence over `--norm-compat`.
 - Added CLI `-D` / `--custom-dict <slot:mode:path>` for loading custom OpenCC dictionary files. The option may be
   repeated and supports Windows drive-letter paths.
 - Added CLI `-U` / `--user-dict-file <file>` for loading Jieba user-dictionary files. The option may be repeated.
-- Added custom OpenCC and Jieba user-dictionary support to the `convert`, `segment`, and `office` CLI subcommands.
+- Added custom OpenCC and Jieba user-dictionary support to the `convert` and `office` CLI subcommands, with Jieba
+  user-dictionary support for `segment`.
 - Added Python integration tests covering conversion, Jieba segmentation and tagging, keyword extraction, custom
-  dictionaries, user dictionaries, config switching, and combined Jieba + OpenCC custom phrase conversion.
+  dictionaries, user dictionaries, config switching, Unicode compatibility normalization, and combined Jieba + OpenCC
+  custom phrase conversion.
 
 ### Changed
 
@@ -40,7 +49,8 @@ the [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format.
 - CLI converter initialization now loads Jieba user dictionaries before custom OpenCC dictionaries so phrase mappings
   can use the customized Jieba segmentation.
 - Refactored shared CLI dictionary option parsing and converter construction across `convert`, `segment`, and `office`.
-- Updated Python type stubs to expose custom dictionary, user dictionary, and available-slot APIs.
+- Updated Python type stubs to expose custom dictionary, user dictionary, available-slot, and Unicode compatibility
+  normalization APIs.
 
 ---
 

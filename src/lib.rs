@@ -261,6 +261,41 @@ impl OpenCC {
         self.opencc.zho_check(input_text)
     }
 
+    // CJK Compatibility Ideograph Normalization and Unicode Compat Normalization
+
+    /// Normalizes CJK Compatibility Ideographs with the built-in Unicode table.
+    ///
+    /// This is a convenience wrapper around the underlying `opencc-jieba-rs`
+    /// compatibility ideograph normalizer. It performs an optional Unicode
+    /// compatibility normalization pre-pass and does not modify this
+    /// [`OpenCC`] instance, its selected config, conversion dictionaries,
+    /// segmentation behavior, script detection, or punctuation conversion.
+    ///
+    /// Use this before [`OpenCC::convert`] when input may contain CJK
+    /// Compatibility Ideographs such as `金` and you want OpenCC-compatible
+    /// behavior. Unmapped compatibility ideographs remain unchanged.
+    fn normalize_compat(&self, text: &str) -> String {
+        self.opencc.normalize_compat(text)
+    }
+
+    /// Normalizes extended Unicode compatibility forms with the built-in tables.
+    ///
+    /// This is a convenience wrapper around the underlying `opencc-jieba-rs`
+    /// extended compatibility normalizer. It applies the extended Unicode
+    /// compatibility mappings together with CJK Compatibility Ideograph
+    /// normalization.
+    ///
+    /// This is an optional pre-processing step and does not modify this
+    /// [`OpenCC`] instance, its selected config, conversion dictionaries,
+    /// segmentation behavior, script detection, or punctuation conversion.
+    ///
+    /// Use this before [`OpenCC::convert`] when input may contain extended
+    /// Unicode compatibility forms. This is a superset of
+    /// [`OpenCC::normalize_compat`].
+    fn normalize_compat_extended(&self, text: &str) -> String {
+        self.opencc.normalize_compat_extended(text)
+    }
+
     /// Apply in-memory custom OpenCC conversion dictionaries to this existing
     /// converter instance.
     ///

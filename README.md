@@ -28,24 +28,28 @@ algorithms.
 
 ## 🔁 Supported Conversion Configs
 
-| Code    | Description                                    |
-|---------|------------------------------------------------|
-| `s2t`   | Simplified → Traditional                       |
-| `t2s`   | Traditional → Simplified                       |
-| `s2tw`  | Simplified → Traditional (Taiwan)              |
-| `tw2s`  | Traditional (Taiwan) → Simplified              |
-| `s2twp` | Simplified → Traditional (Taiwan) with idioms  |
-| `tw2sp` | Traditional (Taiwan)  → Simplified with idioms |
-| `s2hk`  | Simplified → Traditional (Hong Kong)           |
-| `hk2s`  | Traditional (Hong Kong) → Simplified           |
-| `t2tw`  | Traditional → Traditional (Taiwan)             |
-| `tw2t`  | Traditional (Taiwan) → Traditional             |
-| `t2twp` | Traditional → Traditional (Taiwan) with idioms |
-| `tw2tp` | Traditional (Taiwan) → Traditional with idioms |
-| `t2hk`  | Traditional → Traditional (Hong Kong)          |
-| `hk2t`  | Traditional (Hong Kong) → Traditional          |
-| `t2jp`  | Japanese Kyujitai → Shinjitai                  |
-| `jp2t`  | Japanese Shinjitai → Kyujitai                  |
+| Code    | Description                                       |
+|---------|---------------------------------------------------|
+| `s2t`   | Simplified → Traditional                          |
+| `t2s`   | Traditional → Simplified                          |
+| `s2tw`  | Simplified → Traditional (Taiwan)                 |
+| `tw2s`  | Traditional (Taiwan) → Simplified                 |
+| `s2twp` | Simplified → Traditional (Taiwan) with idioms     |
+| `tw2sp` | Traditional (Taiwan)  → Simplified with idioms    |
+| `s2hk`  | Simplified → Traditional (Hong Kong)              |
+| `s2hkp` | Simplified → Traditional (Hong Kong) with idioms  |
+| `hk2s`  | Traditional (Hong Kong) → Simplified              |
+| `hk2sp` | Traditional (Hong Kong) → Simplified with idioms  |
+| `t2tw`  | Traditional → Traditional (Taiwan)                |
+| `tw2t`  | Traditional (Taiwan) → Traditional                |
+| `t2twp` | Traditional → Traditional (Taiwan) with idioms    |
+| `tw2tp` | Traditional (Taiwan) → Traditional with idioms    |
+| `t2hk`  | Traditional → Traditional (Hong Kong)             |
+| `t2hkp` | Traditional → Traditional (Hong Kong) with idioms |
+| `hk2t`  | Traditional (Hong Kong) → Traditional             |
+| `hk2tp` | Traditional (Hong Kong) → Traditional with idioms |
+| `t2jp`  | Japanese Kyujitai → Shinjitai                     |
+| `jp2t`  | Japanese Shinjitai → Kyujitai                     |
 
 ---
 
@@ -72,137 +76,201 @@ instructions.
 
 ## Usage
 
-### Python
+### Basic conversion
 
 ```python
 from opencc_jieba_pyo3 import OpenCC
 
-text = "“春眠不觉晓，处处闻啼鸟。”"
-segment_text = "我独自来到无人海岸线"
-opencc = OpenCC("s2t")
-converted = opencc.convert(text, punctuation=True)
-print(converted)  # 「春眠不覺曉，處處聞啼鳥。」
+cc = OpenCC("s2t")
 
-# Segmentation
-words = opencc.jieba_cut(segment_text, hmm=True)
-print(words)  # ['我', '独自', '来到', '无人', '海岸线']
+print(cc.convert("八千里路云和月"))
+# 八千里路雲和月
 
-# Segmentation and join
-joined = opencc.jieba_segment_join(segment_text, mode="cut", delim="/")
-print(joined)  # 我/独自/来到/无人/海岸线
-
-joined = opencc.jieba_segment_join(segment_text, mode="search", delim="/")
-print(joined)  # 我/独自/来到/无人/海岸/岸线/海岸线
-
-joined = opencc.jieba_segment_join(segment_text, mode="full", delim="/")
-print(joined)  # 我/独/独自/自/自来/来/来到/到/无/无人/人/人海/海/海岸/海岸线/岸/岸线/线
-
-joined = opencc.jieba_segment_join(segment_text, mode="tag", delim=" ")
-print(joined)  # 我/r 独自/d 来到/v 无人/n 海岸线/n
-
-# Keyword extraction (TextRank)
-keywords = opencc.jieba_keyword_extract_textrank(segment_text, top_k=3)
-print(keywords)  # ['海岸线', '无人', '来到']
-
-# Keyword extraction (TF-IDF)
-keywords_tfidf = opencc.jieba_keyword_extract_tfidf(segment_text, top_k=3)
-print(keywords_tfidf)  # ['海岸线', '独自', '无人']
-
-# Keyword weights (TextRank)
-kw_weights = opencc.jieba_keyword_weight_textrank(segment_text, top_k=3)
-print(kw_weights)  # [('海岸线', 9987587364.22353), ('无人', 9986551019.39923), ('来到', 9985428148.988083)]
-
-# Keyword weights (TF-IDF)
-kw_weights_tfidf = opencc.jieba_keyword_weight_tfidf(segment_text, top_k=3)
-print(kw_weights_tfidf)  # [('海岸线', 1.995445949425), ('独自', 1.8446462134525), ('无人', 1.7299179778125)]
+print(cc.convert("“春眠不觉晓，处处闻啼鸟。”", punctuation=True))
+# 「春眠不覺曉，處處聞啼鳥。」
 ```
 
----
-## Custom dictionaries (v0.8.0, unreleased)
-
-Version 0.8.0 adds two complementary dictionary layers:
-
-- **Jieba user dictionaries** teach the tokenizer how to keep domain-specific words together and optionally assign a
-  part-of-speech tag. They affect segmentation, tagging, and keyword extraction, but do not add OpenCC conversions.
-- **Custom OpenCC dictionaries** add or replace mappings in a conversion-dictionary slot. They affect conversion, but
-  do not change Jieba's tokenizer.
-
-Both layers can be loaded into the same `OpenCC` instance. When a phrase needs custom segmentation and custom
-conversion, load the Jieba entries first and the OpenCC mappings second.
-
-### Public Python API
-
-The package exports `UserDictEntry`, `CustomDictSpec`, and `CustomDictFileSpec` typed dictionaries:
+The active configuration can be inspected or changed without creating a new instance:
 
 ```python
-UserDictEntry = {"word": str, "freq": int, "tag": str}  # tag is optional
-CustomDictSpec = {
-    "slot": str,
-    "pairs": list[tuple[str, str]],
-    "mode": str,  # optional: "append" (default) or "override"
-}
-CustomDictFileSpec = {
-    "slot": str,
-    "files": list[str],
-    "mode": str,  # optional: "append" (default) or "override"
-}
+from opencc_jieba_pyo3 import OpenCC
+
+cc = OpenCC()
+
+print(cc.get_config())  # s2t
+
+cc.set_config("t2s")
+print(cc.convert("八千里路雲和月"))
+# 八千里路云和月
 ```
 
-`OpenCC` exposes these dictionary APIs:
+Use `OpenCC.supported_configs()` to enumerate the canonical configuration names and
+`OpenCC.is_valid_config()` to validate a name.
 
-- `OpenCC.from_user_dict_entries(config="s2t", entries=None) -> OpenCC`
-- `OpenCC.from_user_dict_files(config="s2t", files=None) -> OpenCC`
-- `OpenCC.from_dicts(config="s2t", specs=None) -> OpenCC`
-- `OpenCC.from_dict_files(config="s2t", specs=None) -> OpenCC`
-- `load_user_dict_entries(entries) -> None`
-- `load_user_dict(path) -> None`
-- `load_user_dict_files(files) -> None`
-- `load_custom_dicts(specs) -> None`
-- `load_custom_dict_files(specs) -> None`
-- `OpenCC.available_slots() -> list[str]`
+### Unicode compatibility normalization
 
-Use `OpenCC.available_slots()` to get the canonical OpenCC slot names accepted by `slot`. Slot matching is
+v0.8.0 exposes three normalization APIs. Normalization is explicit and does not run automatically during
+`convert()`:
+
+- `normalize_compat()` normalizes CJK Compatibility Ideographs.
+- `normalize_unicode_compat()` normalizes the extended Unicode compatibility/variant table.
+- `normalize_compat_extended()` applies the extended table and CJK Compatibility Ideograph normalization together.
+
+```python
+from opencc_jieba_pyo3 import OpenCC
+
+cc = OpenCC("t2s")
+
+text = "天龍八部書裡的喬峰是契丹人"
+normalized = cc.normalize_compat(text)
+
+print(normalized)
+# 天龍八部書裡的喬峰是契丹人
+
+print(cc.convert(normalized))
+# 天龙八部书里的乔峰是契丹人
+```
+
+For broader compatibility/variant normalization:
+
+```python
+from opencc_jieba_pyo3 import OpenCC
+
+text = "聼聼竒羙⽟䂖甁噐⾳"
+cc = OpenCC("t2s")
+normalized = cc.normalize_compat_extended(text)
+print(normalized)
+# 聽聽奇美玉石瓶器音
+
+print(cc.convert(normalized))
+# 听听奇美玉石瓶器音
+```
+
+`normalize_unicode_compat()` is also available when only the extended Unicode table is wanted.
+
+### Jieba segmentation and tagging
+
+```python
+from opencc_jieba_pyo3 import OpenCC
+
+cc = OpenCC()
+text = "我独自来到无人海岸线"
+
+print(cc.jieba_cut(text, hmm=True))
+# ['我', '独自', '来到', '无人', '海岸线']
+
+print(cc.jieba_cut_for_search(text, hmm=True))
+# ['我', '独自', '来到', '无人', '海岸', '岸线', '海岸线']
+
+print(cc.jieba_segment_join(text, mode="cut", delim="/"))
+# 我/独自/来到/无人/海岸线
+
+print(cc.jieba_segment_join(text, mode="tag", delim=" ", separator=":"))
+# 我:r 独自:d 来到:v 无人:n 海岸线:n
+```
+
+Supported `jieba_segment_join()` modes are `cut`, `search`, `full`, and `tag`.
+
+### Keyword extraction
+
+```python
+from opencc_jieba_pyo3 import OpenCC
+
+cc = OpenCC()
+text = "我独自来到无人海岸线"
+
+keywords = cc.jieba_keyword_extract_textrank(text, top_k=3)
+print(keywords)
+
+keywords_tfidf = cc.jieba_keyword_extract_tfidf(text, top_k=3)
+print(keywords_tfidf)
+
+weighted = cc.jieba_keyword_weight_textrank(text, top_k=3)
+print(weighted)
+
+weighted_tfidf = cc.jieba_keyword_weight_tfidf(text, top_k=3)
+print(weighted_tfidf)
+```
+
+The keyword APIs also accept an optional `allowed_pos` list.
+
+---
+
+## Custom dictionaries
+
+v0.8.0 provides two complementary dictionary layers:
+
+- **Jieba user dictionaries** teach the tokenizer how to keep domain-specific words together and can optionally assign
+  POS tags. They affect segmentation, tagging, keyword extraction, and the token boundaries seen by conversion.
+- **Custom OpenCC dictionaries** add or replace mappings in a conversion-dictionary slot. They affect conversion but do
+  not modify the Jieba dictionary.
+
+Both layers can be loaded into the same `OpenCC` instance. For a custom phrase that Jieba would otherwise split, add the
+phrase to the Jieba user dictionary as well as the appropriate OpenCC conversion slot.
+
+### Typed dictionary specifications
+
+The package exports `UserDictEntry`, `CustomDictSpec`, and `CustomDictFileSpec` for typed Python code:
+
+```python
+from typing import List
+
+from opencc_jieba_pyo3 import CustomDictSpec, UserDictEntry
+
+user_dict: List[UserDictEntry] = [
+    {
+        "word": "細路哥",
+        "freq": 3,
+    }
+]
+
+custom_specs: List[CustomDictSpec] = [
+    {
+        "slot": "HKPhrasesRev",
+        "pairs": [("細路哥", "小男孩")],
+        "mode": "append",
+    }
+]
+```
+
+`mode` is optional and defaults to `append`. `append` merges mappings into the selected slot; `override` replaces the
+contents of that slot. Use `OpenCC.available_slots()` to obtain the canonical slot names. Slot matching is
 case-insensitive; surrounding whitespace and an optional `.txt` suffix are accepted.
-
-For a custom OpenCC dictionary, `append` merges entries into the selected slot and uses the last value when a source
-key is duplicated. `override` clears the selected slot before inserting the supplied mappings. Custom mappings remain
-attached to the instance when switching configs and take effect whenever the active config uses their slot.
 
 ### In-memory dictionaries
 
-This example preserves a domain term as one Jieba token, gives it an `nz` tag, and adds a phrase conversion:
-
 ```python
 from typing import List
 
 from opencc_jieba_pyo3 import CustomDictSpec, OpenCC, UserDictEntry
 
 user_dict: List[UserDictEntry] = [
-  {"word": "帕兰蒂尔", "freq": 100_000, "tag": "nz"},
-]
-custom_dicts: List[CustomDictSpec] = [
-  {
-    "slot": "STPhrases",
-    "pairs": [("帕兰蒂尔", "柏蘭蒂爾")],
-    "mode": "append",
-  }
+    {
+        "word": "細路哥",
+        "freq": 3,
+    }
 ]
 
-cc = OpenCC.from_user_dict_entries(
-  "s2t",
-  user_dict,
-)
-cc.load_custom_dicts(custom_dicts)
+custom_specs: List[CustomDictSpec] = [
+    {
+        "slot": "HKPhrasesRev",
+        "pairs": [("細路哥", "小男孩")],
+        "mode": "append",
+    }
+]
 
-print(cc.jieba_cut("帕兰蒂尔", hmm=False))
-# ['帕兰蒂尔']
-print(cc.jieba_tag("帕兰蒂尔", hmm=False))
-# [('帕兰蒂尔', 'nz')]
-print(cc.convert("帕兰蒂尔是一家公司"))
-# 柏蘭蒂爾是一家公司
+cc = OpenCC("hk2sp")
+cc.load_user_dict_entries(user_dict)
+cc.load_custom_dicts(custom_specs)
+
+print(cc.jieba_cut("這個細路哥很靈活"))
+# ['這個', '細路哥', '很', '靈活']
+
+print(cc.convert("這個細路哥很靈活"))
+# 这个小男孩很灵活
 ```
 
-The equivalent post-load form is useful when the converter already exists:
+Convenience constructors are also available when the dictionaries are known at construction time:
 
 ```python
 from typing import List
@@ -210,301 +278,257 @@ from typing import List
 from opencc_jieba_pyo3 import CustomDictSpec, OpenCC, UserDictEntry
 
 user_dict: List[UserDictEntry] = [
-    {"word": "帕兰蒂尔", "freq": 100_000, "tag": "nz"},
-]
-custom_dicts: List[CustomDictSpec] = [
-    {"slot": "STPhrases", "pairs": [("帕兰蒂尔", "柏蘭蒂爾")]},
+    {
+        "word": "細路哥",
+        "freq": 3,
+    }
 ]
 
-cc = OpenCC("s2t")
-cc.load_user_dict_entries(user_dict)
-cc.load_custom_dicts(custom_dicts)
+custom_specs: List[CustomDictSpec] = [
+    {
+        "slot": "HKPhrasesRev",
+        "pairs": [("細路哥", "小男孩")],
+        "mode": "append",
+    }
+]
+
+cc1 = OpenCC.from_user_dict_entries("hk2sp", user_dict)
+cc2 = OpenCC.from_dicts("hk2sp", custom_specs)
 ```
 
 ### Dictionary files
 
-Jieba user-dictionary files are UTF-8 text using one entry per line. `freq` is required and `tag` is optional:
+Jieba user-dictionary files are UTF-8 text with one entry per line. `freq` is required and `tag` is optional:
 
 ```text
 word freq [tag]
+細路哥 3
 帕兰蒂尔 100000 nz
 ```
 
-Custom OpenCC dictionary files are UTF-8, tab-separated source/target mappings:
+Custom OpenCC dictionary files are UTF-8 tab-separated source/target mappings:
 
 ```text
-帕兰蒂尔<TAB>柏蘭蒂爾
+細路哥<TAB>小男孩
 ```
 
-Load one or more files as follows:
+Use `CustomDictFileSpec` for strict typing:
 
 ```python
 from typing import List
 
 from opencc_jieba_pyo3 import CustomDictFileSpec, OpenCC
 
-custom_dict_files: List[CustomDictFileSpec] = [
+custom_files: List[CustomDictFileSpec] = [
     {
-        "slot": "STPhrases",
-        "files": ["custom_st_phrases.txt"],
+        "slot": "HKPhrasesRev",
         "mode": "append",
+        "files": ["tests/data/my_hk_dict.txt"],
     }
 ]
 
-cc = OpenCC.from_user_dict_files("s2t", ["jieba_user_dict.txt"])
-cc.load_custom_dict_files(custom_dict_files)
+cc = OpenCC("hk2sp")
+cc.load_user_dict_files(["tests/data/user_dict.txt"])
+cc.load_custom_dict_files(custom_files)
 
-# A single Jieba file can also be loaded with:
-cc.load_user_dict("another_user_dict.txt")
+print(cc.convert("這個細路哥很靈活"))
+# 这个小男孩很灵活
 ```
 
-Multiple Jieba files are applied in the supplied order. Custom OpenCC files in a specification are parsed before that
-specification is applied.
+File-based convenience constructors are also available:
 
-The same file-backed features are available to the `convert`, `segment`, and `office` commands. Repeat either option
-to load multiple dictionaries:
+```python
+from opencc_jieba_pyo3 import OpenCC
 
-```sh
-opencc-jieba-pyo3 convert -c s2t \
-  -U jieba_user_dict.txt \
-  -D STPhrases:append:custom_st_phrases.txt \
-  -i input.txt -o output.txt
+custom_files = ["a.txt", "b.txt"]
+cc1 = OpenCC.from_user_dict_files("s2t", ["jieba_user_dict.txt"])
+cc2 = OpenCC.from_dict_files("s2t", custom_files)
 ```
 
-On Windows, drive-letter paths are supported in `-D` values, for example
-`STPhrases:append:R:\dicts\custom_st_phrases.txt`.
+A single Jieba dictionary file can be loaded with `load_user_dict(path)`. Multiple files are applied in the supplied
+order.
 
----
+### Why Jieba and OpenCC dictionaries sometimes need each other
+
+OpenCC phrase conversion operates on Jieba-tokenized text. If Jieba splits a custom phrase, a phrase mapping cannot
+match the complete source text.
+
+For example, without a Jieba user entry:
+
+```text
+這個 細路 哥 很 靈活
+```
+
+Adding `細路哥 3` to a Jieba user dictionary keeps the phrase together:
+
+```text
+這個 細路哥 很 靈活
+```
+
+The `HKPhrasesRev` mapping `細路哥 → 小男孩` can then produce:
+
+```text
+这个小男孩很灵活
+```
+
+This is why `convert` supports both `-U` and `-D`, while `segment` only needs `-U`.
 
 ## CLI
 
-You can also use the CLI interface via Python module or Python script:  
-Features are:
-
-- `convert`: Convert Chinese text using OpenCC + Jieba
-- `segment`: Segment Chinese text using Jieba
-- `office`: Convert Office document Chinese text using OpenCC + Jieba
-
-#### convert
-
-```
-Module: python -m opencc_jieba_pyo3 convert --help
-Script: opencc-jieba-pyo3 convert --help
-
-usage: opencc-jieba-pyo3 convert [-h] [-i <file>] [-o <file>] [-c <conversion>] [-p] [--in-enc <encoding>] [--out-enc <encoding>] [-D <slot:mode:path>]
-                                 [-U <file>]
-
-optional arguments:
-  -h, --help            show this help message and exit
-  -i <file>, --input <file>
-                        Read original text from <file>. (default: None)
-  -o <file>, --output <file>
-                        Write converted text to <file>. (default: None)
-  -c <conversion>, --config <conversion>
-                        Configuration: s2t|s2tw|s2twp|s2hk|s2hkp|t2s|t2tw|t2twp|t2hk|t2hkp|tw2s|tw2sp|tw2t|tw2tp|hk2s|hk2sp|hk2t|hk2tp|jp2t|t2jp (default: None)
-  -p, --punct           Enable punctuation conversion. (default: False)
-  --in-enc <encoding>   Encoding for input. (default: UTF-8)
-  --out-enc <encoding>  Encoding for output. (default: UTF-8)
-  -D <slot:mode:path>, --custom-dict <slot:mode:path>
-                        Load custom OpenCC dictionary file. Format: slot:mode:path, e.g. STPhrases:append:custom.txt. Can be used multiple times. Available
-                        slots: STCharacters|STPhrases|TSCharacters|TSPhrases|TWPhrases|TWPhrasesRev|HKPhrases|HKPhrasesRev|TWVariants|TWVariantsPhrases|TWVariant
-                        sRev|TWVariantsRevPhrases|HKVariants|HKVariantsPhrases|HKVariantsRev|HKVariantsRevPhrases|JPSCharacters|JPSCharactersRev|JPSPhrases
-                        (default: None)
-  -U <file>, --user-dict-file <file>
-                        Load Jieba user dictionary file using 'word freq [tag]' format. Can be used multiple times. (default: None)
-```
-
-#### segment
-
-```
-python -m opencc_jieba_pyo3 segment --help
-opencc-jieba-pyo3 segment --help
-
-usage: opencc-jieba-pyo3 segment [-h] [-i <file>] [-o <file>] [-d <char>] [-s <char>] [--no-hmm] [-m {cut,search,full,tag}] [--in-enc <encoding>]
-                                 [--out-enc <encoding>] [-D <slot:mode:path>] [-U <file>]
-
-optional arguments:
-  -h, --help            show this help message and exit
-  -i <file>, --input <file>
-                        Read input text from <file>. (default: None)
-  -o <file>, --output <file>
-                        Write segmented text to <file>. (default: None)
-  -d <char>, --delim <char>
-                        Delimiter to join segments. (default: )
-  -s <char>, --separator <char>
-                        Separator for segment mode: tag. (default: /)
-  --no-hmm              Disable HMM. (default: False)
-  -m {cut,search,full,tag}, --mode {cut,search,full,tag}
-                        Segmentation mode. (default: cut)
-  --in-enc <encoding>   Encoding for input. (default: UTF-8)
-  --out-enc <encoding>  Encoding for output. (default: UTF-8)
-  -D <slot:mode:path>, --custom-dict <slot:mode:path>
-                        Load custom OpenCC dictionary file. Format: slot:mode:path, e.g. STPhrases:append:custom.txt. Can be used multiple times. Available
-                        slots: STCharacters|STPhrases|TSCharacters|TSPhrases|TWPhrases|TWPhrasesRev|HKPhrases|HKPhrasesRev|TWVariants|TWVariantsPhrases|TWVariant
-                        sRev|TWVariantsRevPhrases|HKVariants|HKVariantsPhrases|HKVariantsRev|HKVariantsRevPhrases|JPSCharacters|JPSCharactersRev|JPSPhrases
-                        (default: None)
-  -U <file>, --user-dict-file <file>
-                        Load Jieba user dictionary file using 'word freq [tag]' format. Can be used multiple times. (default: None)
-```
-
-#### office
-
-```
-python -m opencc_jieba_pyo3 office --help                                                     
-usage: opencc-jieba-pyo3 office [-h] [-i <file>] [-o <file>] [-c <conversion>] [-p] [-f <format>] [--auto-ext] [--keep-font] [-D <slot:mode:path>] [-U <file>]
-
-optional arguments:
-  -h, --help            show this help message and exit
-  -i <file>, --input <file>
-                        Input Office document from <file>. (default: None)
-  -o <file>, --output <file>
-                        Output Office document to <file>. (default: None)
-  -c <conversion>, --config <conversion>
-                        Configuration: s2t|s2tw|s2twp|s2hk|s2hkp|t2s|t2tw|t2twp|t2hk|t2hkp|tw2s|tw2sp|tw2t|tw2tp|hk2s|hk2sp|hk2t|hk2tp|jp2t|t2jp (default: None)
-  -p, --punct           Enable punctuation conversion. (default: False)
-  -f <format>, --format <format>
-                        Target Office format (e.g. docx, xlsx, pptx, odt, ods, odp, epub). (default: None)
-  --auto-ext            Auto-append extension to output file. (default: False)
-  --keep-font           Preserve font-family information in Office content. (default: False)
-  -D <slot:mode:path>, --custom-dict <slot:mode:path>
-                        Load custom OpenCC dictionary file. Format: slot:mode:path, e.g. STPhrases:append:custom.txt. Can be used multiple times. Available
-                        slots: STCharacters|STPhrases|TSCharacters|TSPhrases|TWPhrases|TWPhrasesRev|HKPhrases|HKPhrasesRev|TWVariants|TWVariantsPhrases|TWVariant
-                        sRev|TWVariantsRevPhrases|HKVariants|HKVariantsPhrases|HKVariantsRev|HKVariantsRevPhrases|JPSCharacters|JPSCharactersRev|JPSPhrases
-                        (default: None)
-  -U <file>, --user-dict-file <file>
-                        Load Jieba user dictionary file using 'word freq [tag]' format. Can be used multiple times. (default: None)
-```
+The package can be invoked either as a module or through the installed `opencc-jieba-pyo3` script:
 
 ```sh
-python -m opencc_jieba_pyo3 convert -i input.txt -o output.txt -c s2t --punct
+python -m opencc_jieba_pyo3 <command> [options]
+opencc-jieba-pyo3 <command> [options]
+```
+
+Available commands:
+
+- `convert` — convert text with OpenCC + Jieba.
+- `segment` — segment/tag text with Jieba.
+- `office` — convert supported Office/document formats.
+
+Run `opencc-jieba-pyo3 <command> --help` for the complete option list.
+
+### Text conversion
+
+```sh
 opencc-jieba-pyo3 convert -i input.txt -o output.txt -c s2t --punct
+```
 
-python -m opencc_jieba_pyo3 segment -i input.txt -o output.txt --delim "/"
+Standard input and output are supported:
+
+```sh
+echo "這個細路哥很靈活" | opencc-jieba-pyo3 convert -c hk2sp
+```
+
+Normalization can be enabled before conversion:
+
+```sh
+opencc-jieba-pyo3 convert -c t2s -E -i input.txt -o output.txt
+```
+
+- `-n`, `--norm-compat` — normalize CJK Compatibility Ideographs.
+- `-E`, `--norm-compat-extended` — apply extended compatibility normalization; takes precedence over `-n`.
+
+Custom Jieba and OpenCC dictionaries can be composed:
+
+```sh
+opencc-jieba-pyo3 convert -c hk2sp \
+  -U tests/data/user_dict.txt \
+  -D HKPhrasesRev:append:tests/data/my_hk_dict.txt
+```
+
+`-U` and `-D` may each be repeated. Windows drive-letter paths are supported in `-D` specifications, for example
+`STPhrases:append:R:\dicts\custom_st_phrases.txt`.
+
+### Segmentation
+
+```sh
 opencc-jieba-pyo3 segment -i input.txt -o output.txt --delim "/" --mode search
+```
 
-python -m opencc_jieba_pyo3 office -i input.docx -o output.docx -c s2t --punct --keep-font
+The modes are `cut`, `search`, `full`, and `tag`. Use `--no-hmm` to disable HMM where applicable.
+
+Jieba user dictionaries are supported with `-U`:
+
+```sh
+echo "這個細路哥很靈活" | opencc-jieba-pyo3 segment -U tests/data/user_dict.txt
+```
+
+Compatibility normalization is available with `-n` and `-E` before segmentation. Custom OpenCC `-D` mappings are not
+used by segmentation.
+
+### Office/document conversion
+
+```sh
+opencc-jieba-pyo3 office -i input.docx -o output.docx -c s2t --punct --keep-font
 opencc-jieba-pyo3 office -i input.epub -o output.epub -c s2tw --punct
 ```
 
----
+Supported target formats are `docx`, `xlsx`, `pptx`, `odt`, `ods`, `odp`, and `epub`.
+
+The Office command supports:
+
+- `-c`, `--config` for the conversion configuration.
+- `-p`, `--punct` for punctuation conversion.
+- `-n`, `--norm-compat` and `-E`, `--norm-compat-extended` for compatibility normalization.
+- `-D`, `--custom-dict` for custom OpenCC dictionary files.
+- `-U`, `--user-dict-file` for Jieba user dictionaries.
+- `--auto-ext` to append the target extension automatically.
+- `--keep-font` to preserve font-family information.
 
 ## API
 
-### Class: `OpenCC`
+### `OpenCC`
 
-Unified Python interface for OpenCC and Jieba functionalities.
+```
+OpenCC(config: str = "s2t")
+```
 
-#### Constructor
+The class combines OpenCC conversion dictionaries with a Jieba tokenizer.
 
-- `OpenCC(config: str = "s2t")`
-    - `config`: Conversion configuration (see above). Defaults to `"s2t"`.
+### Configuration
 
-#### Attributes
-
-- `config: str`
-    - Current OpenCC conversion configuration.
-
-#### Methods
-
-- `is_valid_config(config: str) -> bool`
-    - Check whether `config` is a supported OpenCC conversion name.
-
-- `supported_configs() -> list[str]`
-    - Return all supported OpenCC conversion names in canonical lowercase form.
-
-- `canonicalise_config(config: str) -> str`
-    - Normalize a valid config name to its canonical lowercase form.
-
-- `set_config(config: str) -> None`
-    - Update the active OpenCC conversion configuration.
-
+- `OpenCC.supported_configs() -> list[str]`
+- `OpenCC.is_valid_config(config: str) -> bool`
+- `OpenCC.canonicalise_config(config: str) -> str`
 - `get_config() -> str`
-    - Return the current OpenCC conversion configuration.
+- `set_config(config: str) -> None`
+
+### Conversion and normalization
 
 - `convert(input: str, punctuation: bool = False) -> str`
-    - Convert Chinese text using the current OpenCC config.
-    - `input`: Input text.
-    - `punctuation`: Whether to convert Chinese/Japanese punctuation to the target variant.
-    - Returns: Converted text as a string.
-
+- `normalize_compat(input: str) -> str`
+- `normalize_unicode_compat(input: str) -> str`
+- `normalize_compat_extended(input: str) -> str`
 - `zho_check(input: str) -> int`
-    - Detect the type of Chinese in the input text.
-    - Returns: Integer code (1: Traditional, 2: Simplified, 0: Others).
+
+`zho_check()` returns `1` for Traditional Chinese, `2` for Simplified Chinese, and `0` for other/undetermined text.
+
+### Jieba segmentation and tagging
 
 - `jieba_cut(input: str, hmm: bool = True) -> list[str]`
-    - Segment Chinese text using Jieba accurate mode.
-    - `input`: Input text.
-    - `hmm`: Whether to use HMM for new words.
-    - Returns: List of segmented words.
-
 - `jieba_cut_for_search(input: str, hmm: bool = True) -> list[str]`
-    - Segment Chinese text in Jieba search mode.
-    - Produces finer-grained tokens suitable for search indexing.
-
 - `jieba_cut_all(input: str) -> list[str]`
-    - Segment Chinese text in Jieba full mode.
-    - Returns all possible token matches without disambiguation.
-
 - `jieba_tag(input: str, hmm: bool = True) -> list[tuple[str, str]]`
-    - Perform Jieba part-of-speech tagging.
-    - Returns `(word, tag)` tuples.
-
 - `jieba_segment_join(input: str, mode: str = "cut", delim: str = " ", hmm: bool = True, separator: str = "/") -> str`
-    - Segment text and join the result into a single string.
-    - `mode`: One of `"cut"`, `"search"`, `"full"`, or `"tag"`.
-    - `delim`: Delimiter used to join segments or tagged tokens.
-    - `hmm`: Used by `"cut"`, `"search"`, and `"tag"` modes.
-    - `separator`: Separator between word and POS tag in `"tag"` mode.
+- `jieba_cut_and_join(input: str, delimiter: str = "/") -> str` — deprecated compatibility wrapper.
 
-- `jieba_cut_and_join(input: str, delimiter: str = "/") -> str`
-    - Deprecated compatibility wrapper for `jieba_segment_join(input, mode="cut", delim=delimiter)`.
-    - `input`: Input text.
-    - `delimiter`: Delimiter for joining words.
-    - Returns: Joined segmented string.
+### Keyword extraction
 
 - `jieba_keyword_extract_textrank(input: str, top_k: int = 10, allowed_pos: list[str] | None = None) -> list[str]`
-    - Extract keywords using the TextRank algorithm.
-    - `input`: Input text.
-    - `top_k`: Number of keywords to extract.
-    - `allowed_pos`: Optional POS filter list. Each item may contain one or more POS tags separated by whitespace.
-    - Returns: List of keywords.
-
 - `jieba_keyword_extract_tfidf(input: str, top_k: int = 10, allowed_pos: list[str] | None = None) -> list[str]`
-    - Extract keywords using the TF-IDF algorithm.
-    - `input`: Input text.
-    - `top_k`: Number of keywords to extract.
-    - `allowed_pos`: Optional POS filter list. Each item may contain one or more POS tags separated by whitespace.
-    - Returns: List of keywords.
-
 -
-
 `jieba_keyword_weight_textrank(input: str, top_k: int = 10, allowed_pos: list[str] | None = None) -> list[tuple[str, float]]`
-
-- Extract keywords and their weights using TextRank.
-- `input`: Input text.
-- `top_k`: Number of keywords to extract.
-- `allowed_pos`: Optional POS filter list. Each item may contain one or more POS tags separated by whitespace.
-- Returns: List of (keyword, weight) tuples.
-
 -
-
 `jieba_keyword_weight_tfidf(input: str, top_k: int = 10, allowed_pos: list[str] | None = None) -> list[tuple[str, float]]`
 
-- Extract keywords and their weights using TF-IDF.
-- `input`: Input text.
-- `top_k`: Number of keywords to extract.
-- `allowed_pos`: Optional POS filter list. Each item may contain one or more POS tags separated by whitespace.
-- Returns: List of (keyword, weight) tuples.
+### Jieba user dictionaries
 
----
+- `OpenCC.from_user_dict_entries(config="s2t", entries=None) -> OpenCC`
+- `OpenCC.from_user_dict_files(config="s2t", files=None) -> OpenCC`
+- `load_user_dict_entries(entries) -> None`
+- `load_user_dict(path) -> None`
+- `load_user_dict_files(files) -> None`
+
+### Custom OpenCC dictionaries
+
+- `OpenCC.from_dicts(config="s2t", specs=None) -> OpenCC`
+- `OpenCC.from_dict_files(config="s2t", specs=None) -> OpenCC`
+- `load_custom_dicts(specs) -> None`
+- `load_custom_dict_files(specs) -> None`
+- `OpenCC.available_slots() -> list[str]`
+
+The exported typing helpers are `UserDictEntry`, `CustomDictSpec`, and `CustomDictFileSpec`.
 
 ## Development
 
 - Rust source: [src/lib.rs](https://github.com/laisuk/opencc_jieba_pyo3/blob/master/src/lib.rs)
-- Python bindings: [/opencc_jieba_pyo3/__init
-  __.py](https://github.com/laisuk/opencc_jieba_pyo3/blob/master/opencc_jieba_pyo3/__init__.py), [opencc_jieba_pyo3/opencc_jieba_pyo3.pyi](https://github.com/laisuk/opencc_jieba_pyo3/blob/master/opencc_jieba_pyo3/opencc_jieba_pyo3.pyi)
-- CLI: [opencc_jieba_pyo3/__main
-  __.py](https://github.com/laisuk/opencc_jieba_pyo3/blob/master/opencc_jieba_pyo3/__main__.py)
+- Python bindings: [opencc_jieba_pyo3/
+  __init__.py](https://github.com/laisuk/opencc_jieba_pyo3/blob/master/opencc_jieba_pyo3/__init__.py), [opencc_jieba_pyo3/opencc_jieba_pyo3.pyi](https://github.com/laisuk/opencc_jieba_pyo3/blob/master/opencc_jieba_pyo3/opencc_jieba_pyo3.pyi)
+- CLI: [opencc_jieba_pyo3/
+  __main__.py](https://github.com/laisuk/opencc_jieba_pyo3/blob/master/opencc_jieba_pyo3/__main__.py)
 
 ## Rust Module Required
 

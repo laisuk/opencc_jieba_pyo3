@@ -176,6 +176,40 @@ class OpenCC:
         """
         ...
 
+    def normalize_compat(self, text: str) -> str:
+        """
+        Normalize CJK Compatibility Ideographs using the built-in Unicode table.
+
+        This is an optional Unicode compatibility normalization pre-pass. It does
+        not modify this OpenCC instance, its selected config, conversion
+        dictionaries, segmentation behavior, script detection, or punctuation
+        conversion.
+
+        Use this before ``convert()`` when input may contain CJK Compatibility
+        Ideographs such as ``金``. Unmapped compatibility ideographs remain
+        unchanged.
+
+        DeToFu is the opposite side of the pipeline: compatibility ideograph
+        normalization is a pre-processing step, while ``detofu()`` is an
+        optional post-processing display fallback.
+
+        :param text: Input text.
+        :return: Normalized text.
+        """
+        ...
+
+    def normalize_compat_extended(self, text: str) -> str:
+        """
+        Normalize extended Unicode compatibility forms and CJK Compatibility
+        Ideographs using the built-in Unicode tables.
+
+        This is a superset of ``normalize_compat()``.
+
+        :param text: Input text.
+        :return: Extended-normalized text.
+        """
+        ...
+
     def load_user_dict_entries(self, entries: List[UserDictEntry]) -> None:
         """
         Post-load structured Jieba user-dictionary entries onto this instance.
