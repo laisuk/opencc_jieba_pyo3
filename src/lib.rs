@@ -296,6 +296,14 @@ impl OpenCC {
         self.opencc.normalize_compat_extended(text)
     }
 
+    /// Normalize extended Unicode compatibility/variant forms only.
+    ///
+    /// Unlike `normalize_compat_extended()`, this does not apply the
+    /// CJK Compatibility Ideograph table.
+    fn normalize_unicode_compat(&self, text: &str) -> String {
+        self.opencc.normalize_unicode_compat(text)
+    }
+
     /// Apply in-memory custom OpenCC conversion dictionaries to this existing
     /// converter instance.
     ///
@@ -486,7 +494,7 @@ impl OpenCC {
     }
 
     /// Extract keywords using TextRank algorithm.
-    #[pyo3(signature = (input_text, top_k=20, allowed_pos=None))]
+    #[pyo3(signature = (input_text, top_k=10, allowed_pos=None))]
     fn jieba_keyword_extract_textrank(
         &self,
         input_text: &str,
@@ -502,7 +510,7 @@ impl OpenCC {
     }
 
     /// Extract keywords using TF-IDF algorithm.
-    #[pyo3(signature = (input_text, top_k=20, allowed_pos=None))]
+    #[pyo3(signature = (input_text, top_k=10, allowed_pos=None))]
     fn jieba_keyword_extract_tfidf(
         &self,
         input_text: &str,
@@ -518,7 +526,7 @@ impl OpenCC {
     }
 
     /// Extract keywords and their weights using TextRank.
-    #[pyo3(signature = (input_text, top_k=20, allowed_pos=None))]
+    #[pyo3(signature = (input_text, top_k=10, allowed_pos=None))]
     fn jieba_keyword_weight_textrank(
         &self,
         input_text: &str,
@@ -538,7 +546,7 @@ impl OpenCC {
     }
 
     /// Extract keywords and their weights using TF-IDF.
-    #[pyo3(signature = (input_text, top_k=20, allowed_pos=None))]
+    #[pyo3(signature = (input_text, top_k=10, allowed_pos=None))]
     fn jieba_keyword_weight_tfidf(
         &self,
         input_text: &str,

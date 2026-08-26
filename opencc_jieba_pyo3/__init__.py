@@ -32,7 +32,7 @@ class UserDictEntry(_UserDictEntryRequired, total=False):
 
 
 class OpenCC(_OpenCC):
-    def __init__(self, config: str = "s2t"):
+    def __init__(self, config: str = "s2t") -> None:
         """
         Initialize a converter with the selected OpenCC configuration.
 
@@ -96,7 +96,7 @@ class OpenCC(_OpenCC):
             cc.load_user_dict_files(files)
         return cc
 
-    def set_config(self, config):
+    def set_config(self, config) -> None:
         """
         Set the OpenCC conversion configuration.
 
@@ -119,7 +119,7 @@ class OpenCC(_OpenCC):
         else:
             self.config = "s2t"
 
-    def get_config(self):
+    def get_config(self) -> str:
         """
         Get the current conversion config.
 
@@ -148,7 +148,7 @@ class OpenCC(_OpenCC):
         """Return canonical OpenCC dictionary slot names."""
         return _OpenCC.available_slots()
 
-    def zho_check(self, input_text):
+    def zho_check(self, input_text) -> int:
         """
         Heuristically determine whether input text is Simplified or Traditional Chinese.
 
@@ -157,7 +157,7 @@ class OpenCC(_OpenCC):
         """
         return super().zho_check(input_text)
 
-    def convert(self, input_text, punctuation=False):
+    def convert(self, input_text, punctuation=False) -> str:
         """
         Automatically dispatch to the appropriate conversion method based on `self.config`.
 
@@ -201,6 +201,18 @@ class OpenCC(_OpenCC):
         :return: Extended-normalized text.
         """
         return super().normalize_compat_extended(text)
+
+    def normalize_unicode_compat(self, text: str) -> str:
+        """
+        Normalize extended Unicode compatibility/variant forms only.
+
+        Unlike ``normalize_compat_extended()``, this does not apply the
+        CJK Compatibility Ideograph table.
+
+        :param text: Input text.
+        :return: Unicode-normalized text.
+        """
+        return super().normalize_unicode_compat(text)
 
     def jieba_cut(self, input_text: str, hmm: bool = True) -> List[str]:
         """
@@ -299,19 +311,20 @@ class OpenCC(_OpenCC):
             - You can fully customize output using both delim and separator.
 
         Examples:
-            >>> OpenCC.jieba_segment_join("我来到北京清华大学")
+            >>> cc = OpenCC()
+            >>> cc.jieba_segment_join("我来到北京清华大学", delim="/")
             '我/来到/北京/清华大学'
 
-            >>> OpenCC.jieba_segment_join("我来到北京清华大学", delim="|")
+            >>> cc.jieba_segment_join("我来到北京清华大学", delim="|")
             '我|来到|北京|清华大学'
 
-            >>> OpenCC.jieba_segment_join("我来到北京清华大学", mode="search")
+            >>> cc.jieba_segment_join("我来到北京清华大学", mode="search")
             '我/来到/北京/清华/华大/大学/清华大学'
 
-            >>> OpenCC.jieba_segment_join("我来到北京清华大学", mode="tag")
+            >>> cc.jieba_segment_join("我来到北京清华大学", mode="tag")
             '我/r 来到/v 北京/ns 清华大学/nt'
 
-            >>> OpenCC.jieba_segment_join(
+            >>> cc.jieba_segment_join(
             ...     "我来到北京清华大学",
             ...     mode="tag",
             ...     delim=" | ",

@@ -35,9 +35,8 @@ class OpenCC:
     Provides Chinese text conversion (Simplified/Traditional), segmentation, and keyword extraction.
 
     Args:
-        config (str): Optional conversion config (default: "s2t"). Must be one of:
-            "s2t", "t2s", "s2tw", "tw2s", "s2twp", "tw2sp", "s2hk", "hk2s",
-            "t2tw", "tw2t", "t2twp", "tw2tp", "t2hk", "hk2t", "t2jp", "jp2t".
+    config: Optional conversion config. Defaults to ``"s2t"``.
+        See ``supported_configs()`` for the complete list.
 
     Attributes:
         config (str): Current OpenCC config string.
@@ -189,10 +188,6 @@ class OpenCC:
         Ideographs such as ``金``. Unmapped compatibility ideographs remain
         unchanged.
 
-        DeToFu is the opposite side of the pipeline: compatibility ideograph
-        normalization is a pre-processing step, while ``detofu()`` is an
-        optional post-processing display fallback.
-
         :param text: Input text.
         :return: Normalized text.
         """
@@ -207,6 +202,18 @@ class OpenCC:
 
         :param text: Input text.
         :return: Extended-normalized text.
+        """
+        ...
+
+    def normalize_unicode_compat(self, text: str) -> str:
+        """
+        Normalize extended Unicode compatibility/variant forms only.
+
+        Unlike ``normalize_compat_extended()``, this does not apply the
+        CJK Compatibility Ideograph table.
+
+        :param text: Input text.
+        :return: Unicode-normalized text.
         """
         ...
 

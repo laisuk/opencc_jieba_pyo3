@@ -14,13 +14,14 @@ algorithms.
 
 ## Features
 
-- Convert between Simplified, Traditional, Hong Kong, Taiwan, and Japanese Kanji Chinese text.
+- Convert between Simplified Chinese, Traditional Chinese, Taiwan and Hong Kong variants, and Japanese
+  Shinjitai/Kyujitai forms.
 - Fast and memory-efficient, leveraging Rust's performance.
 - Easy-to-use Python API.
 - Supports punctuation conversion and automatic text code detection.
 - Chinese word (Both Traditional and Simplified) segmentation (Jieba).
 - Keyword extraction (TF-IDF, TextRank).
-- Utility functions for punctuation handling and language detection.
+- Optional punctuation conversion and Chinese script detection.
 - Custom OpenCC conversion dictionaries from in-memory mappings or UTF-8 files.
 - Jieba user dictionaries from structured entries or UTF-8 files.
 
@@ -365,9 +366,16 @@ File-based convenience constructors are also available:
 ```python
 from opencc_jieba_pyo3 import OpenCC
 
-custom_files = ["a.txt", "b.txt"]
+custom_specs = [
+    {
+        "slot": "STPhrases",
+        "files": ["a.txt", "b.txt"],
+        "mode": "append",
+    }
+]
+
 cc1 = OpenCC.from_user_dict_files("s2t", ["jieba_user_dict.txt"])
-cc2 = OpenCC.from_dict_files("s2t", custom_files)
+cc2 = OpenCC.from_dict_files("s2t", custom_specs)
 ```
 
 A single Jieba dictionary file can be loaded with `load_user_dict(path)`. Multiple files are applied in the supplied
@@ -477,7 +485,6 @@ The Office command supports:
 
 - `-c`, `--config` for the conversion configuration.
 - `-p`, `--punct` for punctuation conversion.
-- `-n`, `--norm-compat` and `-E`, `--norm-compat-extended` for compatibility normalization.
 - `-D`, `--custom-dict` for custom OpenCC dictionary files.
 - `-U`, `--user-dict-file` for Jieba user dictionaries.
 - `--auto-ext` to append the target extension automatically.

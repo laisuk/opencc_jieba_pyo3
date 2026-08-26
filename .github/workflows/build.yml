@@ -105,6 +105,17 @@ jobs:
       - name: Checkout source
         uses: actions/checkout@v4
 
+      - name: Verify tag matches package version
+        shell: bash
+        run: |
+          VERSION=$(grep '^version = ' Cargo.toml | head -1 | cut -d'"' -f2)
+          TAG="${GITHUB_REF_NAME#v}"
+
+          if [ "$VERSION" != "$TAG" ]; then
+            echo "Cargo.toml version $VERSION does not match tag $GITHUB_REF_NAME"
+            exit 1
+          fi
+
       - name: Set up Python (normal)
         if: ${{ !(runner.os == 'Windows' && matrix.name == 'windows-win7-x86') }}
         uses: actions/setup-python@v5
@@ -233,9 +244,6 @@ jobs:
       contents: read
 
     steps:
-      - name: Checkout source
-        uses: actions/checkout@v4
-
       - name: Download all artifacts
         uses: actions/download-artifact@v4
         with:
