@@ -7,7 +7,20 @@ the [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format.
 
 ---
 
-## [0.8.0] - Unreleased
+## [0.8.1] - Unreleased
+
+### Changed
+
+- CLI:
+    - Allow `/` as a delimiter for `segment` modes where it does not conflict with POS tag output.
+    - Validate `delim` and `separator` only in `tag` mode and reject identical values instead of silently replacing the
+      delimiter.
+    - Improve standard-input handling without taking ownership of the stdin file descriptor.
+    - Clarify `office --format` as an input document format override.
+
+---
+
+## [0.8.0] - 2026-08-26
 
 ### Added
 

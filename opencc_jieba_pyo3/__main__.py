@@ -164,8 +164,11 @@ def validate_input_output_paths(
 
 def read_text_input(input_path: Optional[str], encoding: str) -> Optional[str]:
     try:
-        with io.open(input_path if input_path else 0, encoding=encoding) as stream:
-            return stream.read()
+        if input_path:
+            with io.open(input_path, "r", encoding=encoding) as stream:
+                return stream.read()
+
+        return sys.stdin.buffer.read().decode(encoding)
     except LookupError as ex:
         print(f"❌ Invalid input encoding '{encoding}': {ex}", file=sys.stderr)
     except (OSError, UnicodeError) as ex:
@@ -322,7 +325,7 @@ def subcommand_segment(args: argparse.Namespace) -> int:
         input_str = normalize_input(opencc, input_str, args)
 
         mode = args.mode
-        delim = args.delim if args.delim not in (None, "", "/") else " "
+        delim = args.delim or " "
         separator = args.separator if args.separator not in (None, "") else "/"
         hmm = not args.no_hmm
 
@@ -613,7 +616,7 @@ def main() -> int:
         "-f",
         "--format",
         metavar="<format>",
-        help="Target Office format (docx, xlsx, pptx, odt, ods, odp, epub).",
+        help="Input document format override (docx, xlsx, pptx, odt, ods, odp, epub).",
     )
     parser_office.add_argument(
         "--auto-ext",
