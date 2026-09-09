@@ -9,14 +9,39 @@ the [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format.
 
 ## [0.8.1] - Unreleased
 
+### Added
+
+- DeToFu Python APIs:
+
+    - Add `OpenCC.detofu()` for built-in CJK Extension fallback replacement.
+    - Add `OpenCC.detofu_with_custom_file()` for combining built-in DeToFu mappings with a custom UTF-8 fallback file.
+    - Support DeToFu levels `ExtB` through `ExtI`, with `all` accepted as an alias for `ExtB`.
+- CLI:
+
+    - Add `--detofu [level]` and `--detofu-file <file>` to `convert`.
+    - Add compatibility normalization (`-n` / `-E`) and DeToFu (`--detofu` / `--detofu-file`) to `office`.
+    - Apply the shared `Normalize -> Convert -> DeToFu` text transformation pipeline to text and Office/document
+      conversion.
+
 ### Changed
 
 - CLI:
+
     - Allow `/` as a delimiter for `segment` modes where it does not conflict with POS tag output.
     - Validate `delim` and `separator` only in `tag` mode and reject identical values instead of silently replacing the
       delimiter.
     - Improve standard-input handling without taking ownership of the stdin file descriptor.
     - Clarify `office --format` as an input document format override.
+    - Refactor text and Office/document conversion to share a callable text transformation pipeline while keeping
+      command-specific argument validation, OpenCC construction, dictionary loading, and I/O independent.
+    - Keep `segment` normalization-only; OpenCC conversion, punctuation conversion, custom OpenCC `-D` mappings, and
+      DeToFu are not applied during segmentation.
+- Office/document conversion:
+
+    - Decouple Office container processing from the `OpenCC` implementation by passing a generic `str -> str` text
+      converter to the Office helper.
+    - Preserve existing Office/EPUB container handling, XLSX text targeting, and font-preservation behavior while
+      allowing normalization and DeToFu to compose with conversion.
 
 ---
 
