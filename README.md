@@ -174,6 +174,74 @@ print(cc.convert(normalized))
 
 `normalize_unicode_compat()` is also available when only the extended Unicode table is wanted.
 
+### DeTofu fallback replacement
+
+v0.8.1 exposes DeTofu APIs for replacing selected CJK Extension characters with display-compatible fallback
+characters. DeTofu is explicit and does not run automatically during `convert()`.
+
+* `detofu()` uses the built-in fallback table.
+* `detofu_with_custom_file()` uses the built-in table together with a custom UTF-8 fallback file.
+* The level controls the minimum CJK extension to replace: `ExtB`, `ExtC`, `ExtD`, `ExtE`, `ExtF`, `ExtG`, `ExtH`, or
+  `ExtI`.
+* `all` is accepted as an alias for `ExtB`, which applies Extension B and all supported later extension mappings.
+
+DeTofu is normally applied **after** OpenCC conversion:
+
+```python
+from opencc_jieba_pyo3 import OpenCC
+
+cc = OpenCC("t2s")
+
+text = "儼驂𬴂於上路，訪風景於崇阿"
+converted = cc.convert(text, False)
+safe = cc.detofu(converted, "ExtB")
+
+print(safe)
+# 俨骖騑于上路，访风景于崇阿
+```
+
+A custom fallback file can be supplied when additional mappings are needed:
+
+```python
+from opencc_jieba_pyo3 import OpenCC
+
+cc = OpenCC("t2s")
+
+converted = cc.convert("𣭲毛", False)
+safe = cc.detofu_with_custom_file(
+    converted,
+    "ExtB",
+    "custom_tofu.txt",
+)
+
+print(safe)
+```
+
+The custom file is combined with the built-in DeTofu mappings, with custom mappings taking precedence for the
+same source character.
+
+When compatibility normalization and DeTofu are both needed, the recommended processing order is:
+
+```text
+Normalize -> Convert -> DeTofu
+```
+
+For example:
+
+```python
+from opencc_jieba_pyo3 import OpenCC
+
+cc = OpenCC("t2s")
+
+text = "天龍八部書裡的喬峰是契丹人"
+text = cc.normalize_compat_extended(text)
+text = cc.convert(text, False)
+text = cc.detofu(text, "ExtB")
+
+print(text)
+# 天龙八部书里的乔峰是契丹人
+```
+
 ### Jieba segmentation and tagging
 
 ```python
@@ -435,7 +503,7 @@ Standard input and output are supported:
 echo "這個細路哥很靈活" | opencc-jieba-pyo3 convert -c hk2sp
 ```
 
-Normalization can be enabled before conversion:
+Compatibility normalization can be enabled before conversion:
 
 ```sh
 opencc-jieba-pyo3 convert -c t2s -E -i input.txt -o output.txt
@@ -443,6 +511,31 @@ opencc-jieba-pyo3 convert -c t2s -E -i input.txt -o output.txt
 
 - `-n`, `--norm-compat` — normalize CJK Compatibility Ideographs.
 - `-E`, `--norm-compat-extended` — apply extended compatibility normalization; takes precedence over `-n`.
+
+DeTofu fallback replacement can be applied after conversion:
+
+```sh
+opencc-jieba-pyo3 convert -c t2s -E --detofu ExtB -i input.txt -o output.txt
+```
+
+`--detofu` accepts `all`, `ExtB`, `ExtC`, `ExtD`, `ExtE`, `ExtF`, `ExtG`, `ExtH`, or `ExtI`. When specified without
+a level, it defaults to `all` (`ExtB`).
+
+A custom DeTofu mapping file can also be supplied:
+
+```sh
+opencc-jieba-pyo3 convert -c t2s --detofu ExtB \
+  --detofu-file custom_tofu.txt \
+  -i input.txt -o output.txt
+```
+
+`--detofu-file` requires `--detofu`.
+
+When normalization and DeTofu are both enabled, the processing order is:
+
+```text
+Normalize -> Convert -> DeTofu
+```
 
 Custom Jieba and OpenCC dictionaries can be composed:
 
@@ -469,8 +562,8 @@ Jieba user dictionaries are supported with `-U`:
 echo "這個細路哥很靈活" | opencc-jieba-pyo3 segment -U tests/data/user_dict.txt
 ```
 
-Compatibility normalization is available with `-n` and `-E` before segmentation. Custom OpenCC `-D` mappings are not
-used by segmentation.
+Compatibility normalization is available with `-n` and `-E` before segmentation. Custom OpenCC `-D` mappings,
+OpenCC conversion, punctuation conversion, and DeTofu are not used by segmentation.
 
 ### Office/document conversion
 
@@ -481,10 +574,28 @@ opencc-jieba-pyo3 office -i input.epub -o output.epub -c s2tw --punct
 
 Supported target formats are `docx`, `xlsx`, `pptx`, `odt`, `ods`, `odp`, and `epub`.
 
+Office/document conversion supports the same normalization and DeTofu pipeline as text conversion:
+
+```sh
+opencc-jieba-pyo3 office \
+  -i input.docx -o output.docx \
+  -c t2s -E --detofu ExtB
+```
+
+The processing order is:
+
+```text
+Normalize -> Convert -> DeTofu
+```
+
 The Office command supports:
 
 - `-c`, `--config` for the conversion configuration.
 - `-p`, `--punct` for punctuation conversion.
+- `-n`, `--norm-compat` for CJK Compatibility Ideograph normalization.
+- `-E`, `--norm-compat-extended` for extended compatibility normalization; takes precedence over `-n`.
+- `--detofu [level]` for DeTofu fallback replacement after conversion.
+- `--detofu-file <file>` for additional custom DeTofu mappings; requires `--detofu`.
 - `-D`, `--custom-dict` for custom OpenCC dictionary files.
 - `-U`, `--user-dict-file` for Jieba user dictionaries.
 - `--auto-ext` to append the target extension automatically.
@@ -508,13 +619,24 @@ The class combines OpenCC conversion dictionaries with a Jieba tokenizer.
 - `get_config() -> str`
 - `set_config(config: str) -> None`
 
-### Conversion and normalization
+### Conversion, normalization, and DeTofu
 
 - `convert(input: str, punctuation: bool = False) -> str`
 - `normalize_compat(input: str) -> str`
 - `normalize_unicode_compat(input: str) -> str`
 - `normalize_compat_extended(input: str) -> str`
+- `detofu(text: str, level: str = "ExtB") -> str`
+- `detofu_with_custom_file(text: str, level: str, path: str) -> str`
 - `zho_check(input: str) -> int`
+
+Normalization APIs are explicit pre-processing operations, while DeTofu is an explicit post-processing operation.
+Neither runs automatically during `convert()`.
+
+When all three stages are required, use:
+
+```text
+Normalize -> Convert -> DeTofu
+```
 
 `zho_check()` returns `1` for Traditional Chinese, `2` for Simplified Chinese, and `0` for other/undetermined text.
 
@@ -533,9 +655,11 @@ The class combines OpenCC conversion dictionaries with a Jieba tokenizer.
 - `jieba_keyword_extract_tfidf(input: str, top_k: int = 10, allowed_pos: list[str] | None = None) -> list[str]`
 
 -
+
 `jieba_keyword_weight_textrank(input: str, top_k: int = 10, allowed_pos: list[str] | None = None) -> list[tuple[str, float]]`
 
 -
+
 `jieba_keyword_weight_tfidf(input: str, top_k: int = 10, allowed_pos: list[str] | None = None) -> list[tuple[str, float]]`
 
 ### Jieba user dictionaries

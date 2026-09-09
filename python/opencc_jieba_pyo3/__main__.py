@@ -6,7 +6,7 @@ import io
 import os
 import sys
 from pathlib import Path
-from typing import List, Optional, Tuple
+from typing import Callable, List, Optional, Tuple
 
 from opencc_jieba_pyo3 import CustomDictFileSpec, OpenCC
 
@@ -14,6 +14,8 @@ SUPPORTED_CONFIGS = OpenCC.supported_configs()
 AVAILABLE_SLOTS = OpenCC.available_slots()
 CONFIG_HELP = "Configuration: " + "|".join(SUPPORTED_CONFIGS)
 SLOT_HELP = "Available slots: " + "|".join(AVAILABLE_SLOTS)
+
+TextConverter = Callable[[str], str]
 
 
 def resolve_config(config: Optional[str]) -> Optional[str]:
@@ -216,6 +218,57 @@ def normalize_input(opencc: OpenCC, input_str: str, args: argparse.Namespace) ->
     return input_str
 
 
+def validate_detofu_args(args: argparse.Namespace) -> bool:
+    """Validate shared DeToFu CLI argument dependencies."""
+    if getattr(args, "detofu_file", None) and not getattr(args, "detofu", None):
+        print("❌ --detofu-file requires --detofu", file=sys.stderr)
+        return False
+    return True
+
+
+def make_text_converter(
+        opencc: OpenCC,
+        args: argparse.Namespace,
+) -> TextConverter:
+    """
+    Build the shared text transformation pipeline.
+
+    The caller owns argument validation, OpenCC construction, dictionaries,
+    I/O, and command-specific behavior.
+
+    Pipeline:
+        Normalize -> Convert -> DeToFu
+    """
+    norm_extended = getattr(args, "norm_compat_extended", False)
+    norm_compat = getattr(args, "norm_compat", False)
+    punct = getattr(args, "punct", False)
+
+    detofu: Optional[str] = getattr(args, "detofu", None)
+    detofu_file: Optional[str] = getattr(args, "detofu_file", None)
+
+    def convert_text(text: str) -> str:
+        if norm_extended:
+            text = opencc.normalize_compat_extended(text)
+        elif norm_compat:
+            text = opencc.normalize_compat(text)
+
+        text = opencc.convert(text, punct)
+
+        if detofu is not None:
+            if detofu_file is not None:
+                text = opencc.detofu_with_custom_file(
+                    text,
+                    detofu,
+                    detofu_file,
+                )
+            else:
+                text = opencc.detofu(text, detofu)
+
+        return text
+
+    return convert_text
+
+
 def normalization_status(args: argparse.Namespace) -> str:
     if getattr(args, "norm_compat_extended", False):
         return ", norm-compat:extended"
@@ -259,6 +312,9 @@ def subcommand_convert(args: argparse.Namespace) -> int:
     if not validate_input_output_paths(args.input, args.output):
         return 1
 
+    if not validate_detofu_args(args):
+        return 1
+
     try:
         opencc, specs = build_opencc(config, args)
     except (OSError, RuntimeError, ValueError) as ex:
@@ -277,8 +333,8 @@ def subcommand_convert(args: argparse.Namespace) -> int:
         return 1
 
     try:
-        input_str = normalize_input(opencc, input_str, args)
-        output_str = opencc.convert(input_str, args.punct)
+        text_converter = make_text_converter(opencc, args)
+        output_str = text_converter(input_str)
     except ValueError as ex:
         print(f"❌ Conversion failed: {ex}", file=sys.stderr)
         return 1
@@ -370,13 +426,15 @@ def subcommand_office(args: argparse.Namespace) -> int:
     output_file = args.output
     office_format = args.format
     auto_ext = getattr(args, "auto_ext", False)
-    punct = args.punct
     keep_font = getattr(args, "keep_font", False)
 
     config = resolve_config(args.config)
     if config is None:
         return 1
     args.config = config
+
+    if not validate_detofu_args(args):
+        return 1
 
     if not input_file and not output_file:
         print("❌ Input and output files are missing.", file=sys.stderr)
@@ -429,12 +487,12 @@ def subcommand_office(args: argparse.Namespace) -> int:
         return 1
 
     try:
+        text_converter = make_text_converter(opencc, args)
         success, message = convert_office_doc(
             input_file,
             output_file,
             str(office_format),
-            opencc,
-            punct,
+            text_converter,
             keep_font,
         )
     except Exception as ex:
@@ -499,6 +557,25 @@ def add_normalization_options(parser: argparse.ArgumentParser, action: str) -> N
     )
 
 
+def add_detofu_options(parser: argparse.ArgumentParser) -> None:
+    parser.add_argument(
+        "--detofu",
+        nargs="?",
+        const="all",
+        default=None,
+        metavar="<level>",
+        help=(
+            "Apply DeToFu after conversion. "
+            "Optional level: all/ExtB, ExtC, ExtD, ExtE, ExtF, ExtG, ExtH, ExtI."
+        ),
+    )
+    parser.add_argument(
+        "--detofu-file",
+        metavar="<file>",
+        help="Load additional DeToFu mappings from a UTF-8 text file. Requires --detofu.",
+    )
+
+
 def add_text_io_options(parser: argparse.ArgumentParser) -> None:
     parser.add_argument(
         "-i", "--input", metavar="<file>", help="Read input text from <file>."
@@ -543,6 +620,7 @@ def main() -> int:
         help="Enable punctuation conversion.",
     )
     add_normalization_options(parser_convert, "conversion")
+    add_detofu_options(parser_convert)
     add_conversion_dictionary_options(parser_convert)
     parser_convert.set_defaults(func=subcommand_convert)
 
@@ -628,6 +706,8 @@ def main() -> int:
         action="store_true",
         help="Preserve font-family information in Office content.",
     )
+    add_normalization_options(parser_office, "conversion")
+    add_detofu_options(parser_office)
     add_conversion_dictionary_options(parser_office)
     parser_office.set_defaults(func=subcommand_office)
 

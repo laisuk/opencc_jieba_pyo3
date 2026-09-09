@@ -217,6 +217,92 @@ class OpenCC:
         """
         ...
 
+    def detofu(self, text: str, level: str = "ExtB") -> str:
+        """
+        Apply the built-in DeToFu fallback mappings.
+
+        DeToFu replaces selected CJK Extension characters with display-compatible
+        fallback characters when a built-in mapping is available. Characters
+        without a matching fallback mapping remain unchanged.
+
+        ``level`` is case-insensitive and accepts:
+
+        - ``"all"`` or ``"ExtB"``: Extension B and all supported later extensions
+        - ``"ExtC"``: Extension C and later
+        - ``"ExtD"``: Extension D and later
+        - ``"ExtE"``: Extension E and later
+        - ``"ExtF"``: Extension F and later
+        - ``"ExtG"``: Extension G and later
+        - ``"ExtH"``: Extension H and later
+        - ``"ExtI"``: Extension I only
+
+        This is intended as an optional post-processing step after ``convert()``.
+        It does not modify this OpenCC instance, its selected config, conversion
+        dictionaries, or Jieba segmentation state.
+
+        Args:
+            text (str): Input text.
+            level (str): Minimum CJK extension level. Defaults to ``"ExtB"``.
+
+        Returns:
+            str: Text after DeToFu fallback replacement.
+
+        Raises:
+            ValueError: If ``level`` is not supported.
+
+        Example:
+            >>> cc = OpenCC("t2s")
+            >>> converted = cc.convert("驂𬴂", False)
+            >>> cc.detofu(converted, "ExtB")
+            '骖騑'
+        """
+        ...
+
+    def detofu_with_custom_file(
+            self,
+            text: str,
+            level: str,
+            path: str,
+    ) -> str:
+        """
+        Apply DeToFu using the built-in mappings plus a custom fallback file.
+
+        The custom UTF-8 file is loaded in addition to the built-in DeToFu
+        mappings. Custom mappings override built-in mappings for the same source
+        character.
+
+        ``level`` uses the same case-insensitive values accepted by
+        ``detofu()``: ``"all"``, ``"ExtB"``, ``"ExtC"``, ``"ExtD"``,
+        ``"ExtE"``, ``"ExtF"``, ``"ExtG"``, ``"ExtH"``, or ``"ExtI"``.
+
+        This is an optional post-processing operation after ``convert()`` and
+        does not modify this OpenCC instance, its selected config, custom OpenCC
+        dictionaries, Jieba user dictionaries, or segmentation state.
+
+        Args:
+            text (str): Input text.
+            level (str): Minimum CJK extension level.
+            path (str): Path to a UTF-8 custom DeToFu mapping file.
+
+        Returns:
+            str: Text after built-in and custom DeToFu fallback replacement.
+
+        Raises:
+            ValueError: If ``level`` is invalid or the custom mapping file
+                cannot be loaded or parsed.
+
+        Example:
+            >>> cc = OpenCC("t2s")
+            >>> converted = cc.convert("驂𬴂", False)
+            >>> cc.detofu_with_custom_file(
+            ...     converted,
+            ...     "ExtB",
+            ...     "custom_tofu.txt",
+            ... )
+            '骖騑'
+        """
+        ...
+
     def load_user_dict_entries(self, entries: List[UserDictEntry]) -> None:
         """
         Post-load structured Jieba user-dictionary entries onto this instance.

@@ -12,10 +12,7 @@
 //! - Utility functions for punctuation handling and language detection
 
 use opencc_jieba_rs;
-use opencc_jieba_rs::{
-    CustomDictFileSpec, CustomDictMode, CustomDictSpec, DictSlot, OpenCC as _OpenCC, OpenccConfig,
-    UserDictEntry,
-};
+use opencc_jieba_rs::{CustomDictFileSpec, CustomDictMode, CustomDictSpec, DetofuLevel, DictSlot, OpenCC as _OpenCC, OpenccConfig, UserDictEntry};
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
 use std::path::PathBuf;
@@ -304,6 +301,96 @@ impl OpenCC {
         self.opencc.normalize_unicode_compat(text)
     }
 
+    /// Apply the built-in DeToFu fallback mappings.
+    ///
+    /// DeToFu replaces selected CJK Extension characters with display-compatible
+    /// fallback characters when a built-in mapping is available. Characters
+    /// without a matching fallback mapping are preserved unchanged.
+    ///
+    /// The `level` selects the minimum CJK extension threshold:
+    ///
+    /// - `"all"` or `"ExtB"`: Extension B and all supported later extensions
+    /// - `"ExtC"`: Extension C and later
+    /// - `"ExtD"`: Extension D and later
+    /// - `"ExtE"`: Extension E and later
+    /// - `"ExtF"`: Extension F and later
+    /// - `"ExtG"`: Extension G and later
+    /// - `"ExtH"`: Extension H and later
+    /// - `"ExtI"`: Extension I only
+    ///
+    /// This is intended as an optional post-processing step after OpenCC
+    /// conversion and does not modify this [`OpenCC`] instance, its configuration,
+    /// dictionaries, or Jieba segmentation state.
+    ///
+    /// # Python example
+    ///
+    /// ```python
+    /// cc = OpenCC("t2s")
+    /// converted = cc.convert("驂𬴂", False)
+    /// safe = cc.detofu(converted, "ExtB")
+    /// ```
+    ///
+    /// # Errors
+    ///
+    /// Returns a `ValueError` if `level` is not a supported DeToFu level.
+    fn detofu(&self, text: &str, level: &str) -> PyResult<String> {
+        let level = parse_detofu_level(level)?;
+        Ok(self.opencc.detofu(text, level))
+    }
+
+    /// Apply DeToFu using the built-in mappings plus a custom fallback file.
+    ///
+    /// The custom file is loaded in addition to the built-in DeToFu mappings.
+    /// Custom mappings override built-in mappings for the same source character.
+    ///
+    /// The file must be UTF-8 text containing DeToFu mappings in the format
+    /// accepted by `opencc-jieba-rs`, for example:
+    ///
+    /// ```text
+    /// # tofu<TAB>fallback<TAB>extension
+    /// 𣭲    氂    B
+    /// 𬴂    騑    ExtC
+    /// ```
+    ///
+    /// Blank lines and comment lines are ignored by the Rust core.
+    ///
+    /// `level` uses the same values as [`OpenCC::detofu`]:
+    /// `"all"`, `"ExtB"`, `"ExtC"`, `"ExtD"`, `"ExtE"`, `"ExtF"`,
+    /// `"ExtG"`, `"ExtH"`, or `"ExtI"`.
+    ///
+    /// This is an optional post-processing operation and does not modify this
+    /// [`OpenCC`] instance, its selected conversion config, custom OpenCC
+    /// dictionaries, or Jieba dictionaries.
+    ///
+    /// # Python example
+    ///
+    /// ```python
+    /// cc = OpenCC("t2s")
+    /// converted = cc.convert("驂𬴂", False)
+    /// safe = cc.detofu_with_custom_file(
+    ///     converted,
+    ///     "ExtB",
+    ///     "custom_tofu.txt",
+    /// )
+    /// ```
+    ///
+    /// # Errors
+    ///
+    /// Returns a `ValueError` if `level` is invalid or if the custom mapping file
+    /// cannot be loaded or parsed.
+    fn detofu_with_custom_file(
+        &self,
+        text: &str,
+        level: &str,
+        path: &str,
+    ) -> PyResult<String> {
+        let level = parse_detofu_level(level)?;
+
+        self.opencc
+            .detofu_with_custom_file(text, level, path)
+            .map_err(to_py_value_error)
+    }
+
     /// Apply in-memory custom OpenCC conversion dictionaries to this existing
     /// converter instance.
     ///
@@ -571,6 +658,34 @@ fn to_py_value_error<E: std::fmt::Display>(err: E) -> PyErr {
     PyValueError::new_err(err.to_string())
 }
 
+/// Parse a Python DeToFu level string.
+///
+/// Matching is ASCII case-insensitive and accepts both compact forms such as
+/// `"ext-b"` and enum-style forms such as `"ExtB"`.
+///
+/// `"all"` is treated as `ExtB`, because `ExtB` enables the full built-in
+/// fallback range from Extension B through the latest supported extension.
+///
+/// # Errors
+///
+/// Returns a Python `ValueError` when the supplied level is not recognized.
+fn parse_detofu_level(level: &str) -> PyResult<DetofuLevel> {
+    match level.trim().to_ascii_lowercase().as_str() {
+        "all" | "extb" | "ext-b" | "b" => Ok(DetofuLevel::ExtB),
+        "extc" | "ext-c" | "c" => Ok(DetofuLevel::ExtC),
+        "extd" | "ext-d" | "d" => Ok(DetofuLevel::ExtD),
+        "exte" | "ext-e" | "e" => Ok(DetofuLevel::ExtE),
+        "extf" | "ext-f" | "f" => Ok(DetofuLevel::ExtF),
+        "extg" | "ext-g" | "g" => Ok(DetofuLevel::ExtG),
+        "exth" | "ext-h" | "h" => Ok(DetofuLevel::ExtH),
+        "exti" | "ext-i" | "i" => Ok(DetofuLevel::ExtI),
+        _ => Err(PyValueError::new_err(format!(
+            "invalid DeToFu level: {level}. \
+             Expected: all|ExtB|ExtC|ExtD|ExtE|ExtF|ExtG|ExtH|ExtI"
+        ))),
+    }
+}
+
 /// Parse a Python custom-dictionary merge mode.
 ///
 /// Missing/`None` mode defaults to `append`.
@@ -821,5 +936,24 @@ mod tests {
 
         let _ = std::fs::remove_file(jieba_path);
         let _ = std::fs::remove_file(opencc_path);
+    }
+
+    #[test]
+    fn test_parse_detofu_level() {
+        assert_eq!(parse_detofu_level("all").unwrap(), DetofuLevel::ExtB);
+        assert_eq!(parse_detofu_level("ExtB").unwrap(), DetofuLevel::ExtB);
+        assert_eq!(parse_detofu_level("ext-c").unwrap(), DetofuLevel::ExtC);
+        assert_eq!(parse_detofu_level("I").unwrap(), DetofuLevel::ExtI);
+        assert!(parse_detofu_level("ExtJ").is_err());
+    }
+
+    #[test]
+    fn test_detofu_builtin() {
+        let cc = OpenCC::new(Some("t2s"));
+        let converted = cc.convert("驂騑", false);
+
+        let output = cc.detofu(&converted, "ExtB").unwrap();
+
+        assert_eq!(output, "骖騑");
     }
 }
