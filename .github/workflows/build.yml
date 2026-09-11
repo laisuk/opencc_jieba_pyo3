@@ -103,7 +103,7 @@ jobs:
 
     steps:
       - name: Checkout source
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Verify tag matches package version
         shell: bash
@@ -118,13 +118,13 @@ jobs:
 
       - name: Set up Python (normal)
         if: ${{ !(runner.os == 'Windows' && matrix.name == 'windows-win7-x86') }}
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v7
         with:
           python-version: ${{ matrix.py }}
 
       - name: Set up Python (Win7 x86 needs 3.8 x86)
         if: ${{ runner.os == 'Windows' && matrix.name == 'windows-win7-x86' }}
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v7
         with:
           python-version: "3.8"
           architecture: "x86"
@@ -189,7 +189,7 @@ jobs:
           args: ${{ matrix.maturin_args }}
 
       - name: Upload wheel artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: wheels-${{ matrix.name }}
           path: target/wheels/*.whl
@@ -202,10 +202,10 @@ jobs:
 
     steps:
       - name: Checkout source
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Setup Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v7
         with:
           python-version: "3.8"
 
@@ -229,7 +229,7 @@ jobs:
           python -c "from opencc_jieba_pyo3 import OpenCC; assert OpenCC('s2t').convert('八千里路云和月') == '八千里路雲和月'"
 
       - name: Upload sdist artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: sdist
           path: target/wheels/*.tar.gz
@@ -245,7 +245,7 @@ jobs:
 
     steps:
       - name: Download all artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           path: dist
 
