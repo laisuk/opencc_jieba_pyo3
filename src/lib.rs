@@ -11,7 +11,6 @@
 //! - Post-load custom OpenCC conversion dictionaries (pairs and files)
 //! - Utility functions for punctuation handling and language detection
 
-use opencc_jieba_rs;
 use opencc_jieba_rs::{CustomDictFileSpec, CustomDictMode, CustomDictSpec, DetofuLevel, DictSlot, OpenCC as _OpenCC, OpenccConfig, UserDictEntry};
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;

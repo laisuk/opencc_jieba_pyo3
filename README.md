@@ -594,12 +594,17 @@ The Office command supports:
 - `-p`, `--punct` for punctuation conversion.
 - `-n`, `--norm-compat` for CJK Compatibility Ideograph normalization.
 - `-E`, `--norm-compat-extended` for extended compatibility normalization; takes precedence over `-n`.
-- `--detofu [level]` for DeTofu fallback replacement after conversion.
-- `--detofu-file <file>` for additional custom DeTofu mappings; requires `--detofu`.
+- `--detofu [level]` for DeToFu fallback replacement after conversion.
+- `--detofu-file <file>` for additional custom DeToFu mappings; requires `--detofu`.
 - `-D`, `--custom-dict` for custom OpenCC dictionary files.
 - `-U`, `--user-dict-file` for Jieba user dictionaries.
-- `--auto-ext` to append the target extension automatically.
+- `-F`, `--convert-filename` to convert the input filename stem using the same conversion pipeline when generating the
+  default output filename; ignored when `-o` is specified.
 - `--keep-font` to preserve font-family information.
+
+When `-o`, `--output` is omitted, the output file is automatically named `<input_stem>_converted.<format>`. With `-F`,
+the input filename stem is converted before the suffix is appended. If an explicit output filename has no extension, the
+target format extension is appended automatically.
 
 ## API
 

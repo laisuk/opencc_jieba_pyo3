@@ -420,91 +420,148 @@ def subcommand_segment(args: argparse.Namespace) -> int:
 
 
 def subcommand_office(args: argparse.Namespace) -> int:
-    from .office_helper import OFFICE_FORMATS, convert_office_doc
+    """Convert an Office or EPUB document using OpenCC + Jieba.
 
-    input_file = args.input
-    output_file = args.output
-    office_format = args.format
-    auto_ext = getattr(args, "auto_ext", False)
-    keep_font = getattr(args, "keep_font", False)
+    Reuse the shared text pipeline for document contents and, optionally,
+    for the automatically generated output filename.
+
+    Jieba user dictionaries (-U) are loaded before OpenCC custom
+    dictionaries (-D). Explicit output filenames are never converted.
+    """
+    from .office_helper import OFFICE_FORMATS, convert_office_doc
 
     config = resolve_config(args.config)
     if config is None:
         return 1
-    args.config = config
+
+    input_file = args.input
+    output_file = args.output
+    office_format = args.format.lower() if args.format else None
+    keep_font = args.keep_font
+    convert_filename = getattr(args, "convert_filename", False)
+
+    if not input_file:
+        print("❌ Input file is missing.", file=sys.stderr)
+        return 1
+
+    input_path = Path(input_file)
+    if not input_path.is_file():
+        print(f"❌ Input file not found: {input_file}", file=sys.stderr)
+        return 1
+
+    if office_format is None:
+        office_format = input_path.suffix.lower().lstrip(".")
+
+    if office_format not in OFFICE_FORMATS:
+        print(
+            f"❌ Unsupported Office format: {office_format or '(none)'}",
+            file=sys.stderr,
+        )
+        print(
+            f"   Supported formats: {', '.join(OFFICE_FORMATS)}",
+            file=sys.stderr,
+        )
+        return 1
 
     if not validate_detofu_args(args):
         return 1
 
-    if not input_file and not output_file:
-        print("❌ Input and output files are missing.", file=sys.stderr)
-        return 1
-    if not input_file:
-        print("❌ Input file is missing.", file=sys.stderr)
-        return 1
-    if not Path(input_file).is_file():
-        print(f"❌ Input file not found: {input_file}", file=sys.stderr)
-        return 1
-
-    if not office_format:
-        file_ext = os.path.splitext(input_file)[1].lower()
-        if file_ext[1:] not in OFFICE_FORMATS:
-            print(f"❌ Invalid Office file extension: {file_ext}", file=sys.stderr)
-            print(
-                "   Valid extensions: .docx | .xlsx | .pptx | .odt | .ods | .odp | .epub",
-                file=sys.stderr,
-            )
-            return 1
-        office_format = file_ext[1:]
-    else:
-        office_format = office_format.lower()
-        if office_format not in OFFICE_FORMATS:
-            print(f"❌ Invalid Office format: {office_format}", file=sys.stderr)
-            print(
-                "   Valid formats: docx | xlsx | pptx | odt | ods | odp | epub",
-                file=sys.stderr,
-            )
-            return 1
-
-    if not output_file:
-        input_path = Path(input_file)
-        ext = f".{office_format}" if auto_ext else input_path.suffix
-        output_path = input_path.with_name(f"{input_path.stem}_converted{ext}")
-        output_file = str(output_path)
-        print(f"ℹ️  Output file not specified. Using: {output_path}", file=sys.stderr)
-    elif auto_ext and not os.path.splitext(output_file)[1]:
-        output_file += f".{office_format}"
-        print(f"ℹ️  Auto-extension applied: {output_file}", file=sys.stderr)
-
-    if paths_refer_to_same_file(input_file, output_file):
-        print("❌ Input and output files must be different.", file=sys.stderr)
-        return 1
-
+    # Reuse the dictionary-loading SSOT:
+    # Jieba -U first, then OpenCC -D.
     try:
         opencc, _ = build_opencc(config, args)
     except (OSError, RuntimeError, ValueError) as ex:
-        print(f"❌ Failed to initialize OpenCC: {ex}", file=sys.stderr)
+        print(
+            f"❌ Failed to initialize OpenCC: {ex}",
+            file=sys.stderr,
+        )
+        return 1
+
+    office_text_converter = make_text_converter(opencc, args)
+
+    # Generate the default output filename only when -o is absent.
+    if not output_file:
+        stem = input_path.stem
+
+        if convert_filename:
+            try:
+                stem = office_text_converter(stem)
+            except (OSError, RuntimeError, ValueError) as ex:
+                print(
+                    f"❌ Filename conversion failed: {ex}",
+                    file=sys.stderr,
+                )
+                return 1
+
+            if not stem or stem in (".", ".."):
+                print(
+                    "❌ Filename conversion produced an invalid name.",
+                    file=sys.stderr,
+                )
+                return 1
+
+            # A converted stem must remain one filename component.
+            if (
+                    "/" in stem
+                    or "\\" in stem
+                    or "\x00" in stem
+            ):
+                print(
+                    "❌ Converted filename contains a path separator "
+                    "or NUL character.",
+                    file=sys.stderr,
+                )
+                return 1
+
+        output_file = str(
+            input_path.with_name(f"{stem}_converted.{office_format}")
+        )
+        print(
+            f"ℹ️ Output file not specified. Using: {output_file}",
+            file=sys.stderr,
+        )
+
+    # Append the format extension when an explicit output has none.
+    elif not Path(output_file).suffix:
+        output_file += f".{office_format}"
+        print(
+            f"ℹ️ Auto-extension applied: {output_file}",
+            file=sys.stderr,
+        )
+
+    # Never overwrite the input package.
+    if paths_refer_to_same_file(input_file, output_file):
+        print(
+            "❌ Input and output files must be different.",
+            file=sys.stderr,
+        )
         return 1
 
     try:
-        text_converter = make_text_converter(opencc, args)
         success, message = convert_office_doc(
-            input_file,
-            output_file,
-            str(office_format),
-            text_converter,
-            keep_font,
+            input_path=str(input_path),
+            output_path=output_file,
+            office_format=office_format,
+            office_text_converter=office_text_converter,
+            keep_font=keep_font,
         )
     except Exception as ex:
-        print(f"❌ Error during Office document conversion: {ex}", file=sys.stderr)
+        print(
+            f"❌ Error during Office document conversion: {ex}",
+            file=sys.stderr,
+        )
         return 1
 
     if not success:
-        print(f"❌ Office document conversion failed: {message}", file=sys.stderr)
+        print(
+            f"❌ Office document conversion failed: {message}",
+            file=sys.stderr,
+        )
         return 1
 
     print(
-        f"{message} ({config})\n📁  Output saved to: {os.path.abspath(output_file)}",
+        f"{message} ({config})\n"
+        f"📁 Output saved to: {os.path.abspath(output_file)}",
         file=sys.stderr,
     )
     return 0
@@ -676,13 +733,27 @@ def main() -> int:
         help="Convert Office document Chinese text using OpenCC + Jieba",
     )
     parser_office.add_argument(
-        "-i", "--input", metavar="<file>", help="Input Office document from <file>."
+        "-i",
+        "--input",
+        metavar="<file>",
+        required=True,
+        help="Input Office or EPUB document.",
     )
     parser_office.add_argument(
-        "-o", "--output", metavar="<file>", help="Output Office document to <file>."
+        "-o",
+        "--output",
+        metavar="<file>",
+        help=(
+            "Output document path. Defaults to "
+            "<input-stem>_converted.<format>. "
+            "A missing extension is appended automatically."
+        ),
     )
     parser_office.add_argument(
-        "-c", "--config", metavar="<conversion>", help=CONFIG_HELP
+        "-c",
+        "--config",
+        metavar="<conversion>",
+        help=CONFIG_HELP,
     )
     parser_office.add_argument(
         "-p",
@@ -691,15 +762,19 @@ def main() -> int:
         help="Enable punctuation conversion.",
     )
     parser_office.add_argument(
-        "-f",
-        "--format",
-        metavar="<format>",
-        help="Input document format override (docx, xlsx, pptx, odt, ods, odp, epub).",
+        "-F",
+        "--convert-filename",
+        action="store_true",
+        help=(
+            "Convert the input filename stem when generating the default "
+            "output filename. Ignored when --output is specified."
+        ),
     )
     parser_office.add_argument(
-        "--auto-ext",
-        action="store_true",
-        help="Auto-append extension to output file.",
+        "-f",
+        "--format",
+        choices=("docx", "xlsx", "pptx", "odt", "ods", "odp", "epub"),
+        help="Office or EPUB format (inferred from input extension by default).",
     )
     parser_office.add_argument(
         "--keep-font",
@@ -708,7 +783,9 @@ def main() -> int:
     )
     add_normalization_options(parser_office, "conversion")
     add_detofu_options(parser_office)
+    # Reuse the existing -D and -U dictionary options.
     add_conversion_dictionary_options(parser_office)
+
     parser_office.set_defaults(func=subcommand_office)
 
     args = parser.parse_args()
