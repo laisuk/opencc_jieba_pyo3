@@ -93,6 +93,58 @@ opencc_jieba_pyo3-0.8.0-cp38-abi3-win_amd64.whl
 > **Windows:** Some RAM disks or non-standard temporary filesystems may cause `pip` to fail with `WinError 1` during a
 > source build. If this occurs, set `TEMP` and `TMP` to a normal local filesystem and retry.
 
+### Install directly from GitHub
+
+Install the latest development version directly from the GitHub repository:
+
+```sh
+pip install "git+https://github.com/laisuk/opencc_jieba_pyo3.git"
+```
+
+To install a specific branch, tag, or commit:
+
+```sh
+# Specific branch
+pip install "git+https://github.com/laisuk/opencc_jieba_pyo3.git@master"
+
+# Specific release tag (example)
+pip install "git+https://github.com/laisuk/opencc_jieba_pyo3.git@v0.8.1"
+
+# Specific commit
+pip install "git+https://github.com/laisuk/opencc_jieba_pyo3.git@<commit-sha>"
+```
+
+This method requires **Git**, a compatible Python environment, and a working **Rust toolchain**. `pip` automatically
+invokes maturin to build the native extension.
+
+### Install from GitHub source archive (ZIP)
+
+Git is not required when installing from a GitHub source archive.
+
+Install the latest source snapshot from the default branch:
+
+```sh
+pip install "https://github.com/laisuk/opencc_jieba_pyo3/archive/refs/heads/master.zip"
+```
+
+Alternatively, install a specific tagged release:
+
+```sh
+pip install "https://github.com/laisuk/opencc_jieba_pyo3/archive/refs/tags/v0.8.1.zip"
+```
+
+You can also download the ZIP archive manually, then install it locally:
+
+```sh
+pip install ./opencc_jieba_pyo3-master.zip
+```
+
+**Build requirements:** Both Git and ZIP installations compile the Rust extension locally using maturin. A working Rust
+toolchain and platform-specific native build tools are required.
+
+**Note:** The `master` branch may contain unreleased or experimental changes. For reproducible installations, use a
+release tag or a specific commit.
+
 Or for development:
 
 ```sh
@@ -333,6 +385,11 @@ inverse document frequency data. The `extract` methods return ranked strings; th
 All four methods accept an optional `allowed_pos` list of exact Jieba POS tags:
 
 ```python
+from opencc_jieba_pyo3 import OpenCC
+
+cc = OpenCC()
+text = "我独自来到无人海岸线"
+
 keywords = cc.jieba_keyword_extract_tfidf(
     text, top_k=5, allowed_pos=["n nr", "ns", "nt", "nz"]
 )
@@ -767,6 +824,7 @@ Normalize -> Convert -> DeTofu
 - `jieba_keyword_extract_textrank(input: str, top_k: int = 10, allowed_pos: list[str] | None = None) -> list[str]`
 - `jieba_keyword_extract_tfidf(input: str, top_k: int = 10, allowed_pos: list[str] | None = None) -> list[str]`
 -
+
 `jieba_keyword_weight_textrank(input: str, top_k: int = 10, allowed_pos: list[str] | None = None) -> list[tuple[str, float]]`
 -
 `jieba_keyword_weight_tfidf(input: str, top_k: int = 10, allowed_pos: list[str] | None = None) -> list[tuple[str, float]]`
