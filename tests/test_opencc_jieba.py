@@ -539,6 +539,11 @@ class TestOpenCCJieba(unittest.TestCase):
             "这个小男孩很灵活",
         )
 
+    def test_add_word(self):
+        cc = OpenCC("s2t")
+        cc.add_word("帕兰蒂尔", freq=100000, tag="nz")
+        assert cc.jieba_cut("帕兰蒂尔", hmm=False) == ["帕兰蒂尔"]
+
 
 if __name__ == "__main__":
     unittest.main()

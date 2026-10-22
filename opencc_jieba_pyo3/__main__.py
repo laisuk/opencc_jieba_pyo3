@@ -1,4 +1,8 @@
-from __future__ import print_function
+"""Command-line conversion, segmentation, and Office/EPUB conversion.
+
+Text commands read a file or stdin and write a file or stdout. Diagnostics go
+to stderr so redirected output contains only the requested text.
+"""
 
 import argparse
 import codecs
@@ -144,9 +148,16 @@ def build_jieba(args: argparse.Namespace) -> OpenCC:
 
 
 def paths_refer_to_same_file(input_path: str, output_path: str) -> bool:
-    return os.path.normcase(os.path.abspath(input_path)) == os.path.normcase(
-        os.path.abspath(output_path)
-    )
+    """Recognize identical paths and existing symbolic/hard-link aliases."""
+    if os.path.normcase(os.path.abspath(input_path)) == os.path.normcase(
+            os.path.abspath(output_path)
+    ):
+        return True
+    try:
+        return os.path.samefile(input_path, output_path)
+    except OSError:
+        # A new output file has no filesystem identity yet.
+        return False
 
 
 def validate_input_output_paths(
@@ -170,7 +181,12 @@ def read_text_input(input_path: Optional[str], encoding: str) -> Optional[str]:
             with io.open(input_path, "r", encoding=encoding) as stream:
                 return stream.read()
 
-        return sys.stdin.buffer.read().decode(encoding)
+        binary_stream = getattr(sys.stdin, "buffer", None)
+        if binary_stream is not None:
+            return binary_stream.read().decode(encoding)
+        # Embedded callers may supply an already-decoded text stream.
+        codecs.lookup(encoding)
+        return sys.stdin.read()
     except LookupError as ex:
         print(f"❌ Invalid input encoding '{encoding}': {ex}", file=sys.stderr)
     except (OSError, UnicodeError) as ex:
@@ -196,7 +212,7 @@ def write_text_output(
         if output_path:
             with io.open(output_path, "w", encoding=encoding) as stream:
                 stream.write(output_str)
-        elif sys.stdout.isatty():
+        elif sys.stdout.isatty() or not hasattr(sys.stdout, "buffer"):
             sys.stdout.write(output_str)
             sys.stdout.flush()
         else:
@@ -219,7 +235,7 @@ def normalize_input(opencc: OpenCC, input_str: str, args: argparse.Namespace) ->
 
 
 def validate_detofu_args(args: argparse.Namespace) -> bool:
-    """Validate shared DeToFu CLI argument dependencies."""
+    """Validate shared DeTofu CLI argument dependencies."""
     if getattr(args, "detofu_file", None) and not getattr(args, "detofu", None):
         print("❌ --detofu-file requires --detofu", file=sys.stderr)
         return False
@@ -237,32 +253,34 @@ def make_text_converter(
     I/O, and command-specific behavior.
 
     Pipeline:
-        Normalize -> Convert -> DeToFu
+        Normalize -> Convert -> DeTofu
     """
-    norm_extended = getattr(args, "norm_compat_extended", False)
-    norm_compat = getattr(args, "norm_compat", False)
+    normalize: Optional[TextConverter] = None
+    if getattr(args, "norm_compat_extended", False):
+        normalize = opencc.normalize_compat_extended
+    elif getattr(args, "norm_compat", False):
+        normalize = opencc.normalize_compat
+    convert = opencc.convert
     punct = getattr(args, "punct", False)
 
     detofu: Optional[str] = getattr(args, "detofu", None)
     detofu_file: Optional[str] = getattr(args, "detofu_file", None)
+    # Resolve bound methods once: Office documents call this pipeline for many
+    # separate text fragments. Custom DeTofu files still use the native API.
+    builtin_fallback = opencc.detofu
+    custom_fallback = opencc.detofu_with_custom_file
 
     def convert_text(text: str) -> str:
-        if norm_extended:
-            text = opencc.normalize_compat_extended(text)
-        elif norm_compat:
-            text = opencc.normalize_compat(text)
+        if normalize is not None:
+            text = normalize(text)
 
-        text = opencc.convert(text, punct)
+        text = convert(text, punct)
 
         if detofu is not None:
             if detofu_file is not None:
-                text = opencc.detofu_with_custom_file(
-                    text,
-                    detofu,
-                    detofu_file,
-                )
+                text = custom_fallback(text, detofu, detofu_file)
             else:
-                text = opencc.detofu(text, detofu)
+                text = builtin_fallback(text, detofu)
 
         return text
 
@@ -381,24 +399,12 @@ def subcommand_segment(args: argparse.Namespace) -> int:
         input_str = normalize_input(opencc, input_str, args)
 
         mode = args.mode
-        delim = args.delim or " "
-        separator = args.separator if args.separator not in (None, "") else "/"
+        delim = args.delim if args.delim is not None else " "
+        separator = args.separator if args.separator is not None else "/"
         hmm = not args.no_hmm
-
-        if mode == "cut":
-            output_str = delim.join(opencc.jieba_cut(input_str, hmm))
-        elif mode == "search":
-            output_str = delim.join(opencc.jieba_cut_for_search(input_str, hmm))
-        elif mode == "full":
-            output_str = delim.join(opencc.jieba_cut_all(input_str))
-        elif mode == "tag":
-            tagged = opencc.jieba_tag(input_str, hmm)
-            output_str = delim.join(
-                f"{word}{separator}{tag}" for word, tag in tagged
-            )
-        else:
-            print(f"❌ Invalid segmentation mode: {mode}", file=sys.stderr)
-            return 1
+        output_str = opencc.jieba_segment_join(
+            input_str, mode=mode, delim=delim, hmm=hmm, separator=separator
+        )
     except ValueError as ex:
         print(f"❌ Segmentation failed: {ex}", file=sys.stderr)
         return 1
@@ -622,14 +628,14 @@ def add_detofu_options(parser: argparse.ArgumentParser) -> None:
         default=None,
         metavar="<level>",
         help=(
-            "Apply DeToFu after conversion. "
+            "Apply DeTofu after conversion. "
             "Optional level: all/ExtB, ExtC, ExtD, ExtE, ExtF, ExtG, ExtH, ExtI."
         ),
     )
     parser.add_argument(
         "--detofu-file",
         metavar="<file>",
-        help="Load additional DeToFu mappings from a UTF-8 text file. Requires --detofu.",
+        help="Load additional DeTofu mappings from a UTF-8 text file. Requires --detofu.",
     )
 
 
@@ -654,7 +660,8 @@ def add_text_io_options(parser: argparse.ArgumentParser) -> None:
     )
 
 
-def main() -> int:
+def build_parser() -> argparse.ArgumentParser:
+    """Build the CLI parser without consuming process arguments or running I/O."""
     parser = argparse.ArgumentParser(
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
         description="opencc_jieba_pyo3 – OpenCC + Jieba CLI",
@@ -692,26 +699,29 @@ def main() -> int:
         "--delim",
         metavar="<char>",
         default=" ",
-        help="Delimiter to join segments.",
+        help="Text between tokens; use an empty string to concatenate tokens.",
     )
     parser_segment.add_argument(
         "-s",
         "--separator",
         metavar="<char>",
         default="/",
-        help="Separator for tag mode.",
+        help="Text between each word and its POS tag; used only in tag mode.",
     )
     parser_segment.add_argument(
         "--no-hmm",
         action="store_true",
-        help="Disable HMM.",
+        help="Disable HMM word discovery (ignored in full mode).",
     )
     parser_segment.add_argument(
         "-m",
         "--mode",
         choices=["cut", "search", "full", "tag"],
         default="cut",
-        help="Segmentation mode.",
+        help=(
+            "cut: accurate words; search: overlapping tokens for indexing; "
+            "full: dictionary matches without disambiguation; tag: word/POS pairs."
+        ),
     )
     add_normalization_options(parser_segment, "segmentation")
     add_user_dict_option(parser_segment)
@@ -788,7 +798,12 @@ def main() -> int:
 
     parser_office.set_defaults(func=subcommand_office)
 
-    args = parser.parse_args()
+    return parser
+
+
+def main(argv: Optional[List[str]] = None) -> int:
+    """Run a command and return its exit status; None reads ``sys.argv[1:]``."""
+    args = build_parser().parse_args(argv)
     return args.func(args)
 
 

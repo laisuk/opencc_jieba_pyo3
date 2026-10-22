@@ -18,12 +18,16 @@ algorithms.
   Shinjitai/Kyujitai forms.
 - Fast and memory-efficient, leveraging Rust's performance.
 - Easy-to-use Python API.
-- Supports punctuation conversion and automatic text code detection.
 - Chinese word (Both Traditional and Simplified) segmentation (Jieba).
 - Keyword extraction (TF-IDF, TextRank).
 - Optional punctuation conversion and Chinese script detection.
 - Custom OpenCC conversion dictionaries from in-memory mappings or UTF-8 files.
 - Jieba user dictionaries from structured entries or UTF-8 files.
+- Add or update individual Jieba words with optional automatic frequency selection.
+- Explicit Unicode compatibility normalization and DeTofu display fallback replacement.
+- CLI conversion for text, Office documents, and EPUB packages.
+
+The v0.8.1 additions described below are unreleased; see [CHANGELOG.md](CHANGELOG.md) for changes since v0.8.0.
 
 ---
 
@@ -133,6 +137,15 @@ print(cc.convert("八千里路雲和月"))
 Use `OpenCC.supported_configs()` to enumerate the canonical configuration names and
 `OpenCC.is_valid_config()` to validate a name.
 
+Configuration names are case-insensitive and stored in lowercase. `OpenCC(config)` and `set_config(config)`
+fall back to `"s2t"` for unsupported names. For strict validation, use `apply_config(config)` or assign
+`cc.config = config`: these raise `ValueError` for an unsupported name. `canonicalise_config(config)` validates
+and returns a lowercase name without changing an instance.
+
+`convert()` follows the selected configuration; it does not automatically detect the input script and select a
+direction. `zho_check(text)` provides a separate heuristic: `1` means Traditional, `2` Simplified, and `0`
+undetermined, including text without distinguishing Chinese forms.
+
 ### Unicode compatibility normalization
 
 v0.8.0 exposes three normalization APIs. Normalization is explicit and does not run automatically during
@@ -220,6 +233,21 @@ print(safe)
 The custom file is combined with the built-in DeTofu mappings, with custom mappings taking precedence for the
 same source character.
 
+For example, `custom_tofu.txt` can contain:
+
+```text
+# source<TAB>fallback<TAB>extension
+𣭲<TAB>氂<TAB>B
+𬴂<TAB>騑<TAB>ExtC
+```
+
+Replace `<TAB>` with an actual tab. Blank lines and comment lines are ignored. This format differs from both
+OpenCC conversion dictionaries and Jieba user dictionaries. Unmapped characters remain unchanged, and fallback
+replacement does not guarantee that every character can be displayed by a particular font.
+
+Pass `level` explicitly to both Python DeTofu methods, for example `cc.detofu(text, "ExtB")`. Level names are
+case-insensitive; `B` and `ext-b` are also accepted spellings of `ExtB`.
+
 When compatibility normalization and DeTofu are both needed, the recommended processing order is:
 
 ```text
@@ -263,7 +291,18 @@ print(cc.jieba_segment_join(text, mode="tag", delim=" ", separator=":"))
 # 我:r 独自:d 来到:v 无人:n 海岸线:n
 ```
 
-Supported `jieba_segment_join()` modes are `cut`, `search`, `full`, and `tag`.
+The `jieba_*` methods analyze the supplied text without first applying the selected OpenCC conversion.
+
+| Mode     | Behavior                                                                                     | HMM option |
+|----------|----------------------------------------------------------------------------------------------|------------|
+| `cut`    | Choose an accurate-mode word segmentation.                                                   | Supported  |
+| `search` | Add shorter dictionary matches within accurate-mode tokens for indexing. Tokens can overlap. | Supported  |
+| `full`   | Return dictionary word candidates without disambiguation. Tokens can overlap.                | Ignored    |
+| `tag`    | Segment and attach Jieba POS tags; format each token as `word/tag` by default.               | Supported  |
+
+`hmm=True` enables Hidden Markov Model recognition of words beyond dictionary matches. In `jieba_segment_join()`,
+`delim` defaults to a space in every mode, while `separator` defaults to `/` and applies only in tag mode.
+Empty strings are accepted for either separator. Joining search/full tokens may repeat text because tokens overlap.
 
 ### Keyword extraction
 
@@ -286,7 +325,22 @@ weighted_tfidf = cc.jieba_keyword_weight_tfidf(text, top_k=3)
 print(weighted_tfidf)
 ```
 
-The keyword APIs also accept an optional `allowed_pos` list.
+TextRank ranks words by co-occurrence relationships. TF-IDF combines input word frequencies with Jieba's built-in
+inverse document frequency data. The `extract` methods return ranked strings; the `weight` methods return
+`(keyword, weight)` tuples. Weights are algorithm scores, not occurrence counts or probabilities.
+
+`top_k` is a maximum: filtering may return fewer results, and zero or negative values return an empty list.
+All four methods accept an optional `allowed_pos` list of exact Jieba POS tags:
+
+```python
+keywords = cc.jieba_keyword_extract_tfidf(
+    text, top_k=5, allowed_pos=["n nr", "ns", "nt", "nz"]
+)
+```
+
+Each item is split on whitespace, so `["n nr", "ns"]` equals `["n", "nr", "ns"]`. `"n"` alone does not include
+all noun subtypes. `None`, an empty list, or whitespace-only items apply no explicit POS restriction; the
+algorithm's other filtering still applies. Keyword analysis uses the supplied text without automatic OpenCC conversion.
 
 ---
 
@@ -332,6 +386,26 @@ contents of that slot. Use `OpenCC.available_slots()` to obtain the canonical sl
 case-insensitive; surrounding whitespace and an optional `.txt` suffix are accepted.
 
 ### In-memory dictionaries
+
+For a single word, v0.8.1 adds `add_word()`:
+
+```python
+from opencc_jieba_pyo3 import OpenCC
+
+cc = OpenCC("s2t")
+cc.add_word("帕兰蒂尔", freq=100000, tag="nz")
+print(cc.jieba_cut("帕兰蒂尔", hmm=False))
+# ['帕兰蒂尔']
+
+cc.add_word("自定义词语")  # Let Jieba choose the frequency.
+```
+
+The word must be nonempty and contain no whitespace. Explicit frequencies must be non-negative integers that fit
+the platform's Rust `usize`; `tag` is optional. `add_word()` updates this instance's Jieba dictionary without defining
+an OpenCC replacement. Use `load_user_dict_entries()` for batches with required frequencies, and
+`load_custom_dicts()` to define conversion mappings.
+
+To combine the dictionary layers:
 
 ```python
 from typing import List
@@ -447,7 +521,9 @@ cc2 = OpenCC.from_dict_files("s2t", custom_specs)
 ```
 
 A single Jieba dictionary file can be loaded with `load_user_dict(path)`. Multiple files are applied in the supplied
-order.
+order. If a later Jieba file fails, earlier successfully loaded files remain applied. For custom OpenCC dictionary
+files, all files are parsed before mappings are applied. Duplicate source keys use the last supplied value.
+Custom OpenCC mappings remain available when switching configurations, but affect only configurations using their slot.
 
 ### Why Jieba and OpenCC dictionaries sometimes need each other
 
@@ -490,6 +566,13 @@ Available commands:
 - `office` — convert supported Office/document formats.
 
 Run `opencc-jieba-pyo3 <command> --help` for the complete option list.
+
+For `convert` and `segment`, omit `-i` to read stdin and omit `-o` to write stdout. Text encodings default to UTF-8;
+use `--in-enc` and `--out-enc` for files and redirected byte streams. Diagnostics go to stderr. The CLI rejects input
+and output paths referring to the same file, including existing symbolic-link and hard-link aliases.
+
+Unlike the Python constructor's fallback behavior, `convert` and `office` reject unsupported `--config` names.
+Omitting the configuration uses `s2t`.
 
 ### Text conversion
 
@@ -554,7 +637,17 @@ opencc-jieba-pyo3 convert -c hk2sp \
 opencc-jieba-pyo3 segment -i input.txt -o output.txt --delim "/" --mode search
 ```
 
-The modes are `cut`, `search`, `full`, and `tag`. Use `--no-hmm` to disable HMM where applicable.
+The modes are `cut`, `search`, `full`, and `tag`, as described in the segmentation table above. Use `--no-hmm`
+to disable HMM in cut, search, or tag mode; it is ignored in full mode.
+
+`--delim` inserts text between tokens and defaults to a space. In tag mode, `--separator` inserts text between
+each word and POS tag and defaults to `/`. Values are used as supplied, including `/`, identical separators,
+and empty strings:
+
+```sh
+opencc-jieba-pyo3 segment -i input.txt --mode tag --delim " | " --separator ":"
+opencc-jieba-pyo3 segment -i input.txt --mode cut --delim ""
+```
 
 Jieba user dictionaries are supported with `-U`:
 
@@ -572,7 +665,9 @@ opencc-jieba-pyo3 office -i input.docx -o output.docx -c s2t --punct --keep-font
 opencc-jieba-pyo3 office -i input.epub -o output.epub -c s2tw --punct
 ```
 
-Supported target formats are `docx`, `xlsx`, `pptx`, `odt`, `ods`, `odp`, and `epub`.
+Supported package formats are `docx`, `xlsx`, `pptx`, `odt`, `ods`, `odp`, and `epub`. The format is inferred from
+the input extension; `-f` / `--format` overrides that inference. It does not convert a document from one package
+format to another, such as DOCX to EPUB.
 
 Office/document conversion supports the same normalization and DeTofu pipeline as text conversion:
 
@@ -594,8 +689,8 @@ The Office command supports:
 - `-p`, `--punct` for punctuation conversion.
 - `-n`, `--norm-compat` for CJK Compatibility Ideograph normalization.
 - `-E`, `--norm-compat-extended` for extended compatibility normalization; takes precedence over `-n`.
-- `--detofu [level]` for DeToFu fallback replacement after conversion.
-- `--detofu-file <file>` for additional custom DeToFu mappings; requires `--detofu`.
+- `--detofu [level]` for DeTofu fallback replacement after conversion.
+- `--detofu-file <file>` for additional custom DeTofu mappings; requires `--detofu`.
 - `-D`, `--custom-dict` for custom OpenCC dictionary files.
 - `-U`, `--user-dict-file` for Jieba user dictionaries.
 - `-F`, `--convert-filename` to convert the input filename stem using the same conversion pipeline when generating the
@@ -605,6 +700,18 @@ The Office command supports:
 When `-o`, `--output` is omitted, the output file is automatically named `<input_stem>_converted.<format>`. With `-F`,
 the input filename stem is converted before the suffix is appended. If an explicit output filename has no extension, the
 target format extension is appended automatically.
+
+```sh
+# Generate a converted filename stem and apply normalization to document contents.
+opencc-jieba-pyo3 office -i "汉语.docx" -c s2t -n --convert-filename
+# Output: 漢語_converted.docx
+```
+
+The former `--auto-ext` option has been removed; omit it from existing scripts. Converted filename stems must
+remain a single filename component. Office/EPUB output is built in a temporary archive beside the destination,
+checked for ZIP integrity, and then replaces the destination. An existing output file is preserved if conversion
+or archive validation fails. PPTX conversion targets slides, notes, masters, layouts, and comment parts;
+XLSX conversion targets shared strings and inline-string cell text. EPUB output keeps `mimetype` first and uncompressed.
 
 ## API
 
@@ -623,6 +730,7 @@ The class combines OpenCC conversion dictionaries with a Jieba tokenizer.
 - `OpenCC.canonicalise_config(config: str) -> str`
 - `get_config() -> str`
 - `set_config(config: str) -> None`
+- `apply_config(config: str) -> None` — strict configuration setter; raises `ValueError` on unsupported names.
 
 ### Conversion, normalization, and DeTofu
 
@@ -630,7 +738,7 @@ The class combines OpenCC conversion dictionaries with a Jieba tokenizer.
 - `normalize_compat(input: str) -> str`
 - `normalize_unicode_compat(input: str) -> str`
 - `normalize_compat_extended(input: str) -> str`
-- `detofu(text: str, level: str = "ExtB") -> str`
+- `detofu(text: str, level: str) -> str`
 - `detofu_with_custom_file(text: str, level: str, path: str) -> str`
 - `zho_check(input: str) -> int`
 
@@ -658,13 +766,9 @@ Normalize -> Convert -> DeTofu
 
 - `jieba_keyword_extract_textrank(input: str, top_k: int = 10, allowed_pos: list[str] | None = None) -> list[str]`
 - `jieba_keyword_extract_tfidf(input: str, top_k: int = 10, allowed_pos: list[str] | None = None) -> list[str]`
-
 -
-
 `jieba_keyword_weight_textrank(input: str, top_k: int = 10, allowed_pos: list[str] | None = None) -> list[tuple[str, float]]`
-
 -
-
 `jieba_keyword_weight_tfidf(input: str, top_k: int = 10, allowed_pos: list[str] | None = None) -> list[tuple[str, float]]`
 
 ### Jieba user dictionaries
@@ -674,6 +778,7 @@ Normalize -> Convert -> DeTofu
 - `load_user_dict_entries(entries) -> None`
 - `load_user_dict(path) -> None`
 - `load_user_dict_files(files) -> None`
+- `add_word(word: str, freq: int | None = None, tag: str | None = None) -> None`
 
 ### Custom OpenCC dictionaries
 
@@ -692,6 +797,12 @@ The exported typing helpers are `UserDictEntry`, `CustomDictSpec`, and `CustomDi
   __init__.py](https://github.com/laisuk/opencc_jieba_pyo3/blob/master/opencc_jieba_pyo3/__init__.py), [opencc_jieba_pyo3/opencc_jieba_pyo3.pyi](https://github.com/laisuk/opencc_jieba_pyo3/blob/master/opencc_jieba_pyo3/opencc_jieba_pyo3.pyi)
 - CLI: [opencc_jieba_pyo3/
   __main__.py](https://github.com/laisuk/opencc_jieba_pyo3/blob/master/opencc_jieba_pyo3/__main__.py)
+
+Run the Python API and CLI regression tests from the project root after building/installing the native extension:
+
+```sh
+python -m unittest discover -s tests -v
+```
 
 ## Rust Module Required
 

@@ -11,7 +11,10 @@
 //! - Post-load custom OpenCC conversion dictionaries (pairs and files)
 //! - Utility functions for punctuation handling and language detection
 
-use opencc_jieba_rs::{CustomDictFileSpec, CustomDictMode, CustomDictSpec, DetofuLevel, DictSlot, OpenCC as _OpenCC, OpenccConfig, UserDictEntry};
+use opencc_jieba_rs::{
+    CustomDictFileSpec, CustomDictMode, CustomDictSpec, DetofuLevel, DictSlot, OpenCC as _OpenCC,
+    OpenccConfig, UserDictEntry,
+};
 use pyo3::exceptions::PyValueError;
 use pyo3::prelude::*;
 use std::path::PathBuf;
@@ -300,9 +303,9 @@ impl OpenCC {
         self.opencc.normalize_unicode_compat(text)
     }
 
-    /// Apply the built-in DeToFu fallback mappings.
+    /// Apply the built-in DeTofu fallback mappings.
     ///
-    /// DeToFu replaces selected CJK Extension characters with display-compatible
+    /// DeTofu replaces selected CJK Extension characters with display-compatible
     /// fallback characters when a built-in mapping is available. Characters
     /// without a matching fallback mapping are preserved unchanged.
     ///
@@ -331,18 +334,18 @@ impl OpenCC {
     ///
     /// # Errors
     ///
-    /// Returns a `ValueError` if `level` is not a supported DeToFu level.
+    /// Returns a `ValueError` if `level` is not a supported DeTofu level.
     fn detofu(&self, text: &str, level: &str) -> PyResult<String> {
         let level = parse_detofu_level(level)?;
         Ok(self.opencc.detofu(text, level))
     }
 
-    /// Apply DeToFu using the built-in mappings plus a custom fallback file.
+    /// Apply DeTofu using the built-in mappings plus a custom fallback file.
     ///
-    /// The custom file is loaded in addition to the built-in DeToFu mappings.
+    /// The custom file is loaded in addition to the built-in DeTofu mappings.
     /// Custom mappings override built-in mappings for the same source character.
     ///
-    /// The file must be UTF-8 text containing DeToFu mappings in the format
+    /// The file must be UTF-8 text containing DeTofu mappings in the format
     /// accepted by `opencc-jieba-rs`, for example:
     ///
     /// ```text
@@ -377,12 +380,7 @@ impl OpenCC {
     ///
     /// Returns a `ValueError` if `level` is invalid or if the custom mapping file
     /// cannot be loaded or parsed.
-    fn detofu_with_custom_file(
-        &self,
-        text: &str,
-        level: &str,
-        path: &str,
-    ) -> PyResult<String> {
+    fn detofu_with_custom_file(&self, text: &str, level: &str, path: &str) -> PyResult<String> {
         let level = parse_detofu_level(level)?;
 
         self.opencc
@@ -554,6 +552,75 @@ impl OpenCC {
         Ok(())
     }
 
+    /// Add or update a single word in this instance's Jieba dictionary.
+    ///
+    /// The word becomes available immediately for subsequent Jieba
+    /// segmentation and part-of-speech tagging operations.
+    ///
+    /// Unlike `load_user_dict_entries()`, which loads multiple structured
+    /// entries, this method allows individual words to be registered
+    /// dynamically without creating a user-dictionary file.
+    ///
+    /// This modifies the current instance's Jieba dictionary only.
+    /// It does not modify OpenCC conversion dictionary slots, conversion
+    /// configurations, or other converter instances.
+    ///
+    /// # Arguments
+    ///
+    /// - `word`: Word or phrase to add or update. Must not be empty or
+    ///   contain whitespace.
+    /// - `freq`: Optional Jieba word frequency. When `None`, Jieba
+    ///   determines the frequency automatically.
+    /// - `tag`: Optional part-of-speech tag, such as `"nz"` for a proper
+    ///   noun. Must not contain whitespace or NUL characters.
+    ///
+    /// # Errors
+    ///
+    /// Raises Python `ValueError` if the Rust core rejects the word,
+    /// frequency, or POS tag.
+    ///
+    /// Python-to-Rust argument conversion may also raise an exception
+    /// if `freq` cannot be represented as a Rust `usize`.
+    ///
+    /// # Python example
+    ///
+    /// ```python
+    /// cc = OpenCC("s2t")
+    ///
+    /// # Register a proper noun with an explicit frequency and POS tag.
+    /// cc.add_word("帕兰蒂尔", freq=100000, tag="nz")
+    ///
+    /// # The word is immediately available for segmentation.
+    /// words = cc.jieba_cut("帕兰蒂尔", hmm=False)
+    /// print(words)  # ['帕兰蒂尔']
+    ///
+    /// # Let Jieba determine the frequency automatically.
+    /// cc.add_word("自定义词语")
+    /// ```
+    ///
+    /// # Notes
+    ///
+    /// - Existing word entries may be updated.
+    /// - No converter reconstruction is required.
+    /// - Although this method changes only the Jieba dictionary,
+    ///   different segmentation boundaries may indirectly affect
+    ///   phrase-based OpenCC conversion results.
+    /// - Use `load_user_dict_entries()` or `load_user_dict()` when
+    ///   loading multiple words.
+    ///
+    /// # See also
+    ///
+    /// - `load_user_dict_entries()`
+    /// - `load_user_dict()`
+    /// - `jieba_cut()`
+    /// - `jieba_tag()`
+    #[pyo3(signature = (word, freq = None, tag = None))]
+    fn add_word(&mut self, word: &str, freq: Option<usize>, tag: Option<&str>) -> PyResult<()> {
+        self.opencc
+            .add_word(word, freq, tag)
+            .map_err(to_py_value_error)
+    }
+
     /// Segment Chinese text using Jieba.
     fn jieba_cut(&self, input_text: &str, hmm: bool) -> Vec<String> {
         self.opencc.jieba_cut(input_text, hmm)
@@ -657,7 +724,7 @@ fn to_py_value_error<E: std::fmt::Display>(err: E) -> PyErr {
     PyValueError::new_err(err.to_string())
 }
 
-/// Parse a Python DeToFu level string.
+/// Parse a Python DeTofu level string.
 ///
 /// Matching is ASCII case-insensitive and accepts both compact forms such as
 /// `"ext-b"` and enum-style forms such as `"ExtB"`.
@@ -679,7 +746,7 @@ fn parse_detofu_level(level: &str) -> PyResult<DetofuLevel> {
         "exth" | "ext-h" | "h" => Ok(DetofuLevel::ExtH),
         "exti" | "ext-i" | "i" => Ok(DetofuLevel::ExtI),
         _ => Err(PyValueError::new_err(format!(
-            "invalid DeToFu level: {level}. \
+            "invalid DeTofu level: {level}. \
              Expected: all|ExtB|ExtC|ExtD|ExtE|ExtF|ExtG|ExtH|ExtI"
         ))),
     }
@@ -935,6 +1002,17 @@ mod tests {
 
         let _ = std::fs::remove_file(jieba_path);
         let _ = std::fs::remove_file(opencc_path);
+    }
+
+    #[test]
+    fn test_add_word() {
+        let mut cc = OpenCC::new(Some("s2t"));
+        cc.add_word("帕兰蒂尔", Some(100_000), Option::from("nz"))
+            .expect("Fail to add Jieba word");
+        assert_eq!(
+            cc.jieba_cut("帕兰蒂尔", false),
+            vec!["帕兰蒂尔".to_string()]
+        );
     }
 
     #[test]

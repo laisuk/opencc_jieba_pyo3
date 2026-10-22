@@ -11,37 +11,53 @@ the [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format.
 
 ### Added
 
-- DeToFu Python APIs:
-
-    - Add `OpenCC.detofu()` for built-in CJK Extension fallback replacement.
-    - Add `OpenCC.detofu_with_custom_file()` for combining built-in DeToFu mappings with a custom UTF-8 fallback file.
-    - Support DeToFu levels `ExtB` through `ExtI`, with `all` accepted as an alias for `ExtB`.
-- CLI:
-
-    - Add `--detofu [level]` and `--detofu-file <file>` to `convert`.
-    - Add compatibility normalization (`-n` / `-E`) and DeToFu (`--detofu` / `--detofu-file`) to `office`.
-    - Apply the shared `Normalize -> Convert -> DeToFu` text transformation pipeline to text and Office/document
-      conversion.
+- Added `OpenCC.detofu(text, level)` for built-in CJK Extension fallback replacement and
+  `OpenCC.detofu_with_custom_file(text, level, path)` for custom UTF-8 mappings that override built-in entries.
+  Levels range from `ExtB` through `ExtI`; `all` aliases `ExtB`, and level matching is case-insensitive.
+- Added `OpenCC.add_word(word, freq=None, tag=None)` to add or update a single Jieba word, with automatic frequency
+  selection when `freq` is omitted and an optional POS tag.
+- Added `--detofu [level]` and `--detofu-file <file>` to `convert` and `office`.
+- Added compatibility normalization (`-n` / `-E`) to `office`, sharing the
+  `Normalize -> Convert -> DeTofu` pipeline with text conversion.
+- Added `office -F` / `--convert-filename` to convert the input filename stem when generating a default output path.
+- Added CLI regression tests for text and binary streams, encodings, segmentation modes, empty separators,
+  input/output aliases, normalization and fallback combinations, and Office conversion.
 
 ### Changed
 
-- CLI:
+- Updated the native core to the `opencc-jieba-rs` v0.8.1 API.
+- Segmentation now uses the Python API's shared formatter. `/` and identical token/POS separators are accepted
+  as supplied; CLI help explains the modes, delimiter behavior, and HMM options.
+- Kept `segment` focused on Jieba analysis with optional normalization and `-U` dictionaries. Legacy `-D` arguments
+  remain accepted but are ignored; OpenCC conversion, punctuation conversion, and DeTofu are not applied.
+- Split CLI parser construction into `build_parser()` and allowed `main(argv)` for embedded callers and tests.
+- Resolved normalization, conversion, and fallback methods once when constructing the shared text pipeline,
+  with separate fallback signatures and explicit optional-value narrowing for static type checking.
+- Made `office --input` required during argument parsing and constrained `--format` to supported input package formats.
+  The format still defaults to the input extension; this option does not convert between document formats.
+- Standardized the default Office output name as `<input-stem>_converted.<format>`. Missing extensions on explicit
+  output paths are appended automatically; explicit output filename stems are not converted.
+- Decoupled Office container processing from `OpenCC` through an `office_text_converter` callable, replacing the
+  helper's former `converter` and `punctuation` arguments.
+- Expanded Python wrapper and type-stub docstrings to explain configuration handling, dictionary layers,
+  segmentation modes, keyword ranking and POS filtering, normalization, and return values.
+- Updated GitHub Actions dependencies for wheel and source-distribution builds.
 
-    - Allow `/` as a delimiter for `segment` modes where it does not conflict with POS tag output.
-    - Validate `delim` and `separator` only in `tag` mode and reject identical values instead of silently replacing the
-      delimiter.
-    - Improve standard-input handling without taking ownership of the stdin file descriptor.
-    - Clarify `office --format` as an input document format override.
-    - Refactor text and Office/document conversion to share a callable text transformation pipeline while keeping
-      command-specific argument validation, OpenCC construction, dictionary loading, and I/O independent.
-    - Keep `segment` normalization-only; OpenCC conversion, punctuation conversion, custom OpenCC `-D` mappings, and
-      DeToFu are not applied during segmentation.
-- Office/document conversion:
+### Fixed
 
-    - Decouple Office container processing from the `OpenCC` implementation by passing a generic `str -> str` text
-      converter to the Office helper.
-    - Preserve existing Office/EPUB container handling, XLSX text targeting, and font-preservation behavior while
-      allowing normalization and DeToFu to compose with conversion.
+- Preserved explicitly empty `segment --delim` and `--separator` values instead of replacing them with defaults.
+- Read stdin without closing its file descriptor and supported already-decoded text streams for embedded CLI use.
+- Rejected input/output aliases, including existing symbolic links and hard links, before CLI output can overwrite input.
+- Built Office/EPUB output in a temporary archive beside the destination, validated ZIP integrity, and replaced the
+  destination only after successful completion, preserving existing output if conversion or validation fails.
+- Narrowed PPTX text-part selection to slides, notes, masters, layouts, comments, and comment authors using package
+  paths rather than broad filename matching. Preserved XLSX shared/inline-string targeting, optional font preservation,
+  and EPUB `mimetype` ordering and storage rules.
+- Corrected the search-mode docstring example to use the default space delimiter.
+
+### Removed
+
+- Removed the `office --auto-ext` flag; extension completion is now automatic. Existing scripts should omit the flag.
 
 ---
 
