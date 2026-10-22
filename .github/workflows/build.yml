@@ -105,16 +105,21 @@ jobs:
       - name: Checkout source
         uses: actions/checkout@v7
 
-      - name: Verify tag matches package version
+      - name: Verify tag matches Cargo version
         shell: bash
         run: |
           VERSION=$(grep '^version = ' Cargo.toml | head -1 | cut -d'"' -f2)
           TAG="${GITHUB_REF_NAME#v}"
 
-          if [ "$VERSION" != "$TAG" ]; then
-            echo "Cargo.toml version $VERSION does not match tag $GITHUB_REF_NAME"
+          # Allow beta tags to use the base Cargo version.
+          BASE_TAG="${TAG%%-beta*}"
+
+          if [[ "$VERSION" != "$BASE_TAG" ]]; then
+            echo "::error::Cargo.toml version $VERSION does not match tag $GITHUB_REF_NAME"
             exit 1
           fi
+
+          echo "Version verified: Cargo.toml=$VERSION, tag=$GITHUB_REF_NAME"
 
       - name: Set up Python (normal)
         if: ${{ !(runner.os == 'Windows' && matrix.name == 'windows-win7-x86') }}
