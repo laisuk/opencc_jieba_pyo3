@@ -370,7 +370,7 @@ checksum = "9f7c3e4beb33f85d45ae3e3a1792185706c8e16d043238c593331cc7cd313b50"
 [[package]]
 name = "opencc-jieba-rs"
 version = "0.8.1"
-source = "git+https://github.com/laisuk/opencc-jieba-rs.git?branch=master#b95a9834136b4e465c3c8864916a308ca6cdf619"
+source = "git+https://github.com/laisuk/opencc-jieba-rs.git?branch=master#9e50ed9d4ce1549d9f10f7db2202cf3a5f39fe2d"
 dependencies = [
  "include-flate",
  "jieba-rs",
