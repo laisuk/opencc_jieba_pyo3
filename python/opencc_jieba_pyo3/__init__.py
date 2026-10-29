@@ -74,6 +74,7 @@ class OpenCC(_OpenCC):
             an unsupported name raises ValueError; ``set_config()`` instead
             falls back to ``"s2t"``.
     """
+
     def __init__(self, config: str = "s2t") -> None:
         """Create a converter with built-in OpenCC and Jieba dictionaries.
 
@@ -227,19 +228,525 @@ class OpenCC(_OpenCC):
         return self.config
 
     def load_user_dict_entries(self, entries: List[UserDictEntry]) -> None:
-        """Post-load structured Jieba user-dictionary entries."""
+        """
+        Add structured Jieba user-dictionary entries to this converter.
+
+        This method registers multiple words or phrases directly from Python
+        dictionaries, without requiring an external user-dictionary file.
+
+        Each entry is a dictionary containing the following fields:
+
+            word (str):
+                Required. The word or phrase to register.
+                Must not be empty or contain whitespace.
+
+            freq (int):
+                Required. The Jieba word frequency, expressed as a
+                non-negative integer. Higher frequencies generally make
+                Jieba more likely to recognize the phrase as a single
+                segment.
+
+            tag (str, optional):
+                Optional part-of-speech (POS) tag, such as "n" (noun),
+                "nr" (person name), "ns" (place name), "nt" (organization),
+                or "nz" (proper noun).
+
+        Entries are applied to the existing Jieba dictionary associated
+        with this OpenCC instance. There is no need to reconstruct the
+        converter or reload the built-in dictionaries.
+
+        Important:
+            This method modifies Jieba segmentation and POS information,
+            NOT OpenCC character or phrase conversion mappings.
+
+            Adding a word does not automatically define its Simplified
+            or Traditional Chinese conversion.
+
+            However, segmentation changes may indirectly influence
+            phrase-based OpenCC conversion by changing token boundaries.
+
+            To define a custom conversion mapping, use
+            ``load_custom_dicts()`` or ``load_custom_dict_files()``.
+
+        Args:
+            entries (List[UserDictEntry]):
+                A list of dictionaries, each containing ``word``,
+                ``freq``, and optionally ``tag``.
+
+        Raises:
+            ValueError:
+                If the Rust core rejects an entry.
+            TypeError:
+                If an entry has an incompatible Python structure or
+                field type.
+            OverflowError:
+                If a frequency cannot be represented as a Rust usize.
+
+        Examples:
+            Register multiple domain-specific words:
+
+            >>> cc = OpenCC("s2t")
+            >>> cc.load_user_dict_entries([
+            ...     {"word": "帕兰蒂尔", "freq": 100000, "tag": "nz"},
+            ...     {"word": "云计算平台", "freq": 80000, "tag": "n"},
+            ...     {"word": "人工智能", "freq": 100000},
+            ... ])
+            >>> cc.jieba_cut("帕兰蒂尔", hmm=False)
+            ['帕兰蒂尔']
+
+            Combine Jieba segmentation with a custom OpenCC phrase mapping:
+
+            >>> cc.load_custom_dicts([
+            ...     {
+            ...         "slot": "STPhrases",
+            ...         "pairs": [("帕兰蒂尔", "柏蘭蒂爾")],
+            ...         "mode": "append",
+            ...     }
+            ... ])
+            >>> cc.convert("帕兰蒂尔是一家公司", False)
+            '柏蘭蒂爾是一家公司'
+
+        Notes:
+            - Entries are added to the current converter instance.
+            - The existing Jieba dictionary remains available.
+            - No external dictionary file is required.
+            - Entries are processed by the Rust backend.
+            - ``freq`` is required for this API. For automatic frequency
+              selection, use ``add_word()`` instead.
+
+        See Also:
+            add_word:
+                Dynamically add or update a single Jieba word.
+            load_user_dict:
+                Load a single Jieba user-dictionary file.
+            load_user_dict_files:
+                Load multiple Jieba user-dictionary files.
+            load_custom_dicts:
+                Add custom OpenCC conversion mappings.
+        """
         super().load_user_dict_entries(entries)
 
     def load_user_dict_files(self, files: List[str]) -> None:
-        """Post-load one or more Jieba user-dictionary files in order."""
+        """
+        Load multiple Jieba user-dictionary files into this converter.
+
+        This method loads one or more external user-dictionary files in
+        the supplied order, adding their words, frequencies, and optional
+        part-of-speech tags to the current instance's Jieba dictionary.
+
+        Each file must follow the Jieba user-dictionary text format:
+
+            word freq [tag]
+
+        Fields are separated by whitespace:
+
+            word:
+                Required. A word or phrase to register.
+
+            freq:
+                Required. A non-negative integer representing the
+                word frequency.
+
+            tag:
+                Optional part-of-speech (POS) tag.
+
+        Example file content (user_dict.txt):
+
+            帕兰蒂尔 100000 nz
+            云计算平台 80000 n
+            人工智能 100000
+            自然语言处理 90000 n
+
+        Files are loaded sequentially using the Rust core's
+        ``load_user_dict()`` API.
+
+        Each successfully loaded file updates the existing Jieba
+        dictionary without reconstructing the converter.
+
+        Important:
+            This method modifies Jieba segmentation and POS information,
+            NOT OpenCC conversion dictionary mappings.
+
+            It does not automatically define Simplified/Traditional
+            conversion pairs for the registered words.
+
+            For custom OpenCC character or phrase conversions, use
+            ``load_custom_dict_files()`` instead.
+
+        Args:
+            files (List[str]):
+                Paths to Jieba user-dictionary files, in loading order.
+                Both relative and absolute paths are accepted.
+
+        Raises:
+            ValueError:
+                If the Rust core cannot read or parse a dictionary file.
+            TypeError:
+                If the supplied paths have incompatible Python types.
+
+        Examples:
+            Load multiple Jieba dictionaries:
+
+            >>> cc = OpenCC("s2t")
+            >>> cc.load_user_dict_files([
+            ...     "dictionaries/technical.txt",
+            ...     "dictionaries/company_names.txt",
+            ...     "dictionaries/personal_words.txt",
+            ... ])
+
+            The loaded words are available for subsequent segmentation:
+
+            >>> cc.jieba_cut("帕兰蒂尔", hmm=False)
+            ['帕兰蒂尔']
+
+        Loading behavior:
+            - Files are processed in the supplied order.
+            - Each file is loaded through the Rust backend.
+            - Successfully loaded files remain applied.
+            - If a later file fails, the method raises an exception.
+            - Earlier successfully loaded files are not rolled back.
+            - The converter's OpenCC configuration remains unchanged.
+
+        Notes:
+            - The method can be called after converter initialization.
+            - No converter reconstruction is required.
+            - Multiple calls can extend the current Jieba dictionary.
+            - File contents are interpreted as Jieba user-dictionary
+              entries, not OpenCC source/target mapping pairs.
+            - Changes to segmentation may indirectly affect
+              phrase-based OpenCC conversion.
+
+        See Also:
+            load_user_dict:
+                Load a single Jieba user-dictionary file.
+            load_user_dict_entries:
+                Load structured in-memory Jieba entries.
+            add_word:
+                Add or update a single Jieba word dynamically.
+            load_custom_dict_files:
+                Load custom OpenCC conversion dictionary files.
+        """
         super().load_user_dict_files(files)
 
+    def add_word(
+            self,
+            word: str,
+            freq: Optional[int] = None,
+            tag: Optional[str] = None,
+    ) -> None:
+        """
+        Add or update a word in this instance's Jieba dictionary.
+
+        The word becomes available immediately for subsequent Jieba
+        segmentation and part-of-speech tagging operations.
+
+        This method is intended for dynamically registering individual
+        words without creating or loading a user-dictionary file.
+
+        Only the current instance's Jieba dictionary is modified.
+        OpenCC conversion dictionary slots and configurations remain
+        unchanged. However, changes to segmentation boundaries may
+        indirectly affect phrase-based OpenCC conversion.
+
+        :param word:
+            Word or phrase to add. Must not be empty or contain
+            whitespace.
+        :param freq:
+            Optional word frequency. If None, Jieba determines
+            the frequency automatically.
+        :param tag:
+            Optional part-of-speech tag, such as "nz".
+            Must not contain whitespace or NUL characters.
+        :raises ValueError:
+            If the word or POS tag fails validation.
+        :raises OverflowError:
+            If the frequency cannot be represented as a Rust usize.
+
+        Example:
+            >>> cc = OpenCC("s2t")
+            >>> cc.add_word("帕兰蒂尔", freq=100000, tag="nz")
+            >>> cc.jieba_cut("帕兰蒂尔", hmm=False)
+            ['帕兰蒂尔']
+
+        See Also:
+            load_user_dict_entries:
+                Load multiple structured Jieba dictionary entries.
+            load_user_dict_files:
+                Load Jieba user-dictionary files.
+        """
+        super().add_word(word, freq, tag)
+
     def load_custom_dicts(self, specs: List[CustomDictSpec]) -> None:
-        """Post-load in-memory OpenCC custom conversion dictionaries."""
+        """
+        Apply in-memory custom OpenCC conversion dictionaries to this instance.
+
+        This method extends or replaces mappings in selected OpenCC dictionary
+        slots using source/target string pairs supplied directly from Python.
+
+        Custom dictionaries are applied to the existing converter without
+        reconstructing it or replacing its Jieba tokenizer.
+
+        Each specification is a dictionary containing:
+
+            slot (str):
+                Required. The target OpenCC dictionary slot, such as
+                "STCharacters", "STPhrases", or "TWPhrasesRev".
+
+                Use ``available_slots()`` to retrieve the canonical slot
+                names supported by the Rust backend.
+
+            pairs (List[Tuple[str, str]]):
+                Required. A list of (source, target) string pairs.
+
+                The source is the text to match, and the target is its
+                replacement during conversion.
+
+            mode (str, optional):
+                Controls how mappings are applied to the selected slot:
+
+                - "append" (default):
+                  Merge the supplied mappings into the existing slot.
+                  Existing mappings are preserved unless a source key
+                  is explicitly replaced.
+
+                - "override":
+                  Clear the selected slot before inserting the supplied
+                  mappings. Existing mappings in that slot are discarded.
+
+        Important:
+            This method modifies OpenCC conversion dictionaries, NOT
+            Jieba word frequencies or part-of-speech information.
+
+            Adding a multi-character phrase mapping does not automatically
+            register that phrase in Jieba's segmentation dictionary.
+
+            For domain-specific phrases, you may also need
+            ``add_word()`` or ``load_user_dict_entries()`` to ensure
+            that Jieba recognizes the phrase as a single segment.
+
+        Args:
+            specs (List[CustomDictSpec]):
+                A list of custom dictionary specifications. Each must
+                contain ``slot`` and ``pairs``; ``mode`` is optional.
+
+        Raises:
+            ValueError:
+                If a slot name or mode is invalid, or the Rust backend
+                rejects the supplied dictionary mappings.
+            TypeError:
+                If a specification has missing required fields or
+                incompatible Python types.
+
+        Examples:
+            Append a custom phrase mapping:
+
+            >>> cc = OpenCC("s2t")
+            >>> cc.load_custom_dicts([
+            ...     {
+            ...         "slot": "STPhrases",
+            ...         "pairs": [
+            ...             ("帕兰蒂尔", "柏蘭蒂爾"),
+            ...             ("云计算平台", "雲端運算平台"),
+            ...         ],
+            ...         "mode": "append",
+            ...     }
+            ... ])
+
+            Combine custom phrase mappings with Jieba segmentation:
+
+            >>> cc.add_word("帕兰蒂尔", freq=100000, tag="nz")
+            >>> cc.convert("帕兰蒂尔是一家公司", False)
+            '柏蘭蒂爾是一家公司'
+
+            Apply mappings to multiple slots:
+
+            >>> cc.load_custom_dicts([
+            ...     {
+            ...         "slot": "STCharacters",
+            ...         "pairs": [("龙", "龍")],
+            ...     },
+            ...     {
+            ...         "slot": "STPhrases",
+            ...         "pairs": [("帕兰蒂尔", "柏蘭蒂爾")],
+            ...     },
+            ... ])
+
+        Notes:
+            - Changes apply to the current converter instance.
+            - Multiple dictionary slots may be updated in one call.
+            - The default mode is "append".
+            - Duplicate source keys use last-wins semantics.
+            - "override" replaces the contents of the selected slot,
+              not the entire OpenCC dictionary system.
+            - Custom mappings remain available when switching between
+              OpenCC conversion configurations.
+            - A mapping affects conversions that use its dictionary slot.
+            - Jieba segmentation and POS dictionaries remain unchanged.
+
+        See Also:
+            available_slots:
+                List canonical OpenCC dictionary slot names.
+            load_custom_dict_files:
+                Load custom conversion mappings from external files.
+            load_user_dict_entries:
+                Register Jieba words and frequencies.
+            add_word:
+                Dynamically register a single Jieba word.
+        """
         super().load_custom_dicts(specs)
 
     def load_custom_dict_files(self, specs: List[CustomDictFileSpec]) -> None:
-        """Post-load OpenCC custom conversion dictionary files."""
+        """
+        Apply custom OpenCC conversion dictionary files to this instance.
+
+        This method loads source/target conversion mappings from external
+        UTF-8 text files and applies them to selected OpenCC dictionary
+        slots using append or override semantics.
+
+        It is the file-backed counterpart of ``load_custom_dicts()``.
+
+        Each specification is a dictionary containing:
+
+            slot (str):
+                Required. The OpenCC dictionary slot to modify.
+
+                Examples include "STCharacters", "STPhrases",
+                "TWPhrasesRev", and other canonical slot names.
+
+                Use ``available_slots()`` to inspect supported slots.
+
+            files (List[str]):
+                Required. A list of paths to UTF-8 text dictionary files.
+
+                Each file contains source/target mappings in standard
+                OpenCC text dictionary format.
+
+            mode (str, optional):
+                Controls how mappings are applied:
+
+                - "append" (default):
+                  Merge the loaded mappings into the existing slot.
+                  Existing entries remain unless their source keys
+                  are replaced.
+
+                - "override":
+                  Clear the selected slot before inserting the loaded
+                  mappings. The selected slot's original entries are
+                  replaced by the supplied custom mappings.
+
+        Dictionary file format:
+            Each mapping occupies one line, with the source and target
+            separated by a TAB character:
+
+                source<TAB>target
+
+            Example file content (custom_st_phrases.txt):
+
+                帕兰蒂尔<TAB>柏蘭蒂爾
+                云计算平台<TAB>雲端運算平台
+                人工智能<TAB>人工智慧
+
+            The notation <TAB> represents an actual tab character,
+            not the literal text "<TAB>".
+
+            These are OpenCC conversion mappings, not Jieba dictionary
+            entries. Do not include word frequencies or POS tags.
+
+        Important:
+            This method modifies OpenCC conversion dictionary slots,
+            NOT the Jieba segmentation dictionary.
+
+            Loading a phrase conversion mapping does not automatically
+            register that phrase as a Jieba word.
+
+            If the phrase requires special segmentation handling,
+            register it separately using ``add_word()`` or one of
+            the Jieba user-dictionary loading methods.
+
+        Args:
+            specs (List[CustomDictFileSpec]):
+                A list of file-backed dictionary specifications.
+                Each must contain ``slot`` and ``files``;
+                ``mode`` is optional.
+
+        Raises:
+            ValueError:
+                If a slot or mode is invalid, a dictionary file cannot
+                be read or parsed, or the Rust backend rejects the
+                loaded mappings.
+            TypeError:
+                If a specification has missing required fields or
+                incompatible Python types.
+
+        Examples:
+            Load one custom conversion dictionary file:
+
+            >>> cc = OpenCC("s2t")
+            >>> cc.load_custom_dict_files([
+            ...     {
+            ...         "slot": "STPhrases",
+            ...         "files": ["dictionaries/custom_st_phrases.txt"],
+            ...         "mode": "append",
+            ...     }
+            ... ])
+
+            Load multiple files into the same dictionary slot:
+
+            >>> cc.load_custom_dict_files([
+            ...     {
+            ...         "slot": "STPhrases",
+            ...         "files": [
+            ...             "dictionaries/company_names.txt",
+            ...             "dictionaries/technical_terms.txt",
+            ...         ],
+            ...         "mode": "append",
+            ...     }
+            ... ])
+
+            Load dictionaries into different slots:
+
+            >>> cc.load_custom_dict_files([
+            ...     {
+            ...         "slot": "STCharacters",
+            ...         "files": ["dictionaries/custom_characters.txt"],
+            ...     },
+            ...     {
+            ...         "slot": "STPhrases",
+            ...         "files": ["dictionaries/custom_phrases.txt"],
+            ...     },
+            ... ])
+
+        Loading behavior:
+            - Files are parsed by the Rust backend before their
+              mappings are applied.
+            - Files belonging to a specification contribute mappings
+              to the selected dictionary slot.
+            - "append" preserves unrelated existing mappings.
+            - "override" replaces mappings in the selected slot.
+            - Duplicate source keys use last-wins semantics.
+            - The existing Jieba tokenizer is not reconstructed.
+            - Custom mappings remain available across conversion
+              configuration changes.
+
+        Notes:
+            - Dictionary files must use UTF-8 encoding.
+            - Relative and absolute file paths are supported.
+            - A single call may target multiple dictionary slots.
+            - Changes apply to the current converter instance.
+            - The active OpenCC configuration is not changed.
+            - Conversion results depend on the selected configuration,
+              dictionary slot, and segmentation behavior.
+
+        See Also:
+            available_slots:
+                Retrieve supported dictionary slot names.
+            load_custom_dicts:
+                Apply in-memory source/target conversion pairs.
+            load_user_dict_files:
+                Load Jieba segmentation dictionaries.
+            add_word:
+                Register individual Jieba words dynamically.
+        """
         super().load_custom_dict_files(specs)
 
     @staticmethod
@@ -421,34 +928,20 @@ class OpenCC(_OpenCC):
         return super().jieba_tag(input_text, hmm)
 
     def jieba_cut_and_join(self, input_text: str, delimiter: str = "/") -> str:
-        """Segment in accurate mode with HMM enabled and join the tokens.
+        """Segment in accurate mode (HMM enabled) and join tokens efficiently.
 
-        Deprecated: emits DeprecationWarning. Use
-        ``jieba_segment_join(input_text, mode="cut", delim=delimiter)`` instead.
+        Calls the native Rust incremental-join implementation directly,
+        avoiding an intermediate Python list of token strings. No automatic
+        OpenCC conversion is performed.
 
         Args:
-            input_text (str): Text to segment, without automatic OpenCC conversion.
-            delimiter (str): Text inserted between tokens. Defaults to ``"/"``;
-                pass it as ``delim`` when migrating to ``jieba_segment_join()``.
+            input_text (str): Text to segment.
+            delimiter (str): Separator between tokens. Defaults to ``"/"``.
 
         Returns:
-            str: Tokens joined with the chosen delimiter.
+            str: Segmented text joined using ``delimiter``.
         """
-        import warnings
-
-        warnings.warn(
-            "jieba_cut_and_join() is deprecated and will be removed in a future version. "
-            "Use jieba_segment_join(input_text, mode='cut', delim=...) instead.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-
-        # Forward to new unified API
-        return self.jieba_segment_join(
-            input_text,
-            mode="cut",
-            delim=delimiter,
-        )
+        return super().jieba_cut_and_join(input_text, delimiter)
 
     def jieba_segment_join(
             self,

@@ -7,7 +7,7 @@ the [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format.
 
 ---
 
-## [0.8.1] - Unreleased
+## [0.9.0] - Unreleased
 
 ### Added
 
@@ -25,7 +25,7 @@ the [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format.
 
 ### Changed
 
-- Updated the native core to the `opencc-jieba-rs` v0.8.1 API.
+- Updated the native core to the `opencc-jieba-rs` v0.9.0 API.
 - Segmentation now uses the Python API's shared formatter. `/` and identical token/POS separators are accepted
   as supplied; CLI help explains the modes, delimiter behavior, and HMM options.
 - Kept `segment` focused on Jieba analysis with optional normalization and `-U` dictionaries. Legacy `-D` arguments

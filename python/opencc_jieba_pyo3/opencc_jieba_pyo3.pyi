@@ -461,6 +461,79 @@ class OpenCC:
         """
         ...
 
+    def add_word(
+            self,
+            word: str,
+            freq: Optional[int] = None,
+            tag: Optional[str] = None,
+    ) -> None:
+        """
+        Add or update a single word in this instance's Jieba dictionary.
+
+        The word becomes available immediately for subsequent Jieba
+        segmentation and part-of-speech tagging operations.
+
+        Unlike ``load_user_dict_entries()``, which loads multiple structured
+        entries, this method provides a convenient way to register individual
+        words dynamically without creating a user-dictionary file.
+
+        This affects the current instance's Jieba tokenizer only. It does
+        not modify OpenCC conversion dictionary slots, conversion configs,
+        or other OpenCC instances.
+
+        Args:
+            word (str):
+                Word to add or update. Must not be empty or contain
+                whitespace.
+
+            freq (Optional[int]):
+                Optional word frequency. If ``None``, Jieba determines
+                the frequency automatically. Defaults to ``None``.
+
+            tag (Optional[str]):
+                Optional part-of-speech tag, such as ``"nz"`` for a
+                proper noun. Must not contain whitespace or NUL
+                characters. Defaults to ``None``.
+
+        Returns:
+            None:
+                The word is added or updated in the Jieba dictionary.
+
+        Raises:
+            ValueError:
+                If ``word`` is empty, contains whitespace, or ``tag``
+                contains whitespace or NUL characters.
+
+            OverflowError:
+                If ``freq`` cannot be represented as a non-negative
+                platform-sized integer.
+
+        Example:
+            >>> cc = OpenCC("s2t")
+            >>> cc.add_word("帕兰蒂尔", freq=100000, tag="nz")
+            >>> cc.jieba_cut("帕兰蒂尔", hmm=False)
+            ['帕兰蒂尔']
+
+        Notes:
+            - Existing word entries may be updated.
+            - The change takes effect without rebuilding the converter.
+            - Jieba user words can influence phrase-based OpenCC conversion
+              by changing how input text is segmented.
+            - For loading multiple words, use ``load_user_dict_entries()``
+              or ``load_user_dict_files()``.
+
+        See Also:
+            load_user_dict_entries:
+                Load multiple structured Jieba dictionary entries.
+            load_user_dict:
+                Load a Jieba user-dictionary file.
+            jieba_cut:
+                Segment text using the current Jieba dictionary.
+            jieba_tag:
+                Segment and assign part-of-speech tags.
+        """
+        ...
+
     @staticmethod
     def available_slots() -> List[str]:
         """Return supported OpenCC conversion dictionary slot names.
@@ -545,18 +618,17 @@ class OpenCC:
         ...
 
     def jieba_cut_and_join(self, input_text: str, delimiter: str = "/") -> str:
-        """Segment in accurate mode with HMM enabled and join the tokens.
-
-        Deprecated: emits DeprecationWarning. Use
-        ``jieba_segment_join(input_text, mode="cut", delim=delimiter)`` instead.
-
+        """Segment in accurate mode (HMM enabled) and join tokens efficiently.
+    
+        Uses native Rust incremental joining without creating an intermediate
+        Python token list. Does not perform automatic OpenCC conversion.
+    
         Args:
-            input_text (str): Text to segment, without automatic OpenCC conversion.
-            delimiter (str): Text inserted between tokens. Defaults to ``"/"``;
-                pass it as ``delim`` when migrating to ``jieba_segment_join()``.
-
+            input_text (str): Text to segment.
+            delimiter (str): Separator between tokens. Defaults to ``"/"``.
+    
         Returns:
-            str: Tokens joined with the chosen delimiter.
+            str: Segmented text joined using ``delimiter``.
         """
         ...
 

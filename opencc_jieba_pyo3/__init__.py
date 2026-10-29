@@ -928,34 +928,20 @@ class OpenCC(_OpenCC):
         return super().jieba_tag(input_text, hmm)
 
     def jieba_cut_and_join(self, input_text: str, delimiter: str = "/") -> str:
-        """Segment in accurate mode with HMM enabled and join the tokens.
+        """Segment in accurate mode (HMM enabled) and join tokens efficiently.
 
-        Deprecated: emits DeprecationWarning. Use
-        ``jieba_segment_join(input_text, mode="cut", delim=delimiter)`` instead.
+        Calls the native Rust incremental-join implementation directly,
+        avoiding an intermediate Python list of token strings. No automatic
+        OpenCC conversion is performed.
 
         Args:
-            input_text (str): Text to segment, without automatic OpenCC conversion.
-            delimiter (str): Text inserted between tokens. Defaults to ``"/"``;
-                pass it as ``delim`` when migrating to ``jieba_segment_join()``.
+            input_text (str): Text to segment.
+            delimiter (str): Separator between tokens. Defaults to ``"/"``.
 
         Returns:
-            str: Tokens joined with the chosen delimiter.
+            str: Segmented text joined using ``delimiter``.
         """
-        import warnings
-
-        warnings.warn(
-            "jieba_cut_and_join() is deprecated and will be removed in a future version. "
-            "Use jieba_segment_join(input_text, mode='cut', delim=...) instead.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-
-        # Forward to new unified API
-        return self.jieba_segment_join(
-            input_text,
-            mode="cut",
-            delim=delimiter,
-        )
+        return super().jieba_cut_and_join(input_text, delimiter)
 
     def jieba_segment_join(
             self,

@@ -27,7 +27,7 @@ algorithms.
 - Explicit Unicode compatibility normalization and DeTofu display fallback replacement.
 - CLI conversion for text, Office documents, and EPUB packages.
 
-The v0.8.1 additions described below are unreleased; see [CHANGELOG.md](CHANGELOG.md) for changes since v0.8.0.
+The v0.9.0 additions described below are unreleased; see [CHANGELOG.md](CHANGELOG.md) for changes since v0.8.0.
 
 ---
 
@@ -108,7 +108,7 @@ To install a specific branch, tag, or commit:
 pip install "git+https://github.com/laisuk/opencc_jieba_pyo3.git@master"
 
 # Specific release tag (example)
-pip install "git+https://github.com/laisuk/opencc_jieba_pyo3.git@v0.8.1"
+pip install "git+https://github.com/laisuk/opencc_jieba_pyo3.git@v0.9.0"
 
 # Specific commit
 pip install "git+https://github.com/laisuk/opencc_jieba_pyo3.git@<commit-sha>"
@@ -130,7 +130,7 @@ pip install "https://github.com/laisuk/opencc_jieba_pyo3/archive/refs/heads/mast
 Alternatively, install a specific tagged release:
 
 ```sh
-pip install "https://github.com/laisuk/opencc_jieba_pyo3/archive/refs/tags/v0.8.1.zip"
+pip install "https://github.com/laisuk/opencc_jieba_pyo3/archive/refs/tags/v0.9.0.zip"
 ```
 
 You can also download the ZIP archive manually, then install it locally:
@@ -241,7 +241,7 @@ print(cc.convert(normalized))
 
 ### DeTofu fallback replacement
 
-v0.8.1 exposes DeTofu APIs for replacing selected CJK Extension characters with display-compatible fallback
+v0.9.0 exposes DeTofu APIs for replacing selected CJK Extension characters with display-compatible fallback
 characters. DeTofu is explicit and does not run automatically during `convert()`.
 
 * `detofu()` uses the built-in fallback table.
@@ -444,7 +444,7 @@ case-insensitive; surrounding whitespace and an optional `.txt` suffix are accep
 
 ### In-memory dictionaries
 
-For a single word, v0.8.1 adds `add_word()`:
+For a single word, v0.9.0 adds `add_word()`:
 
 ```python
 from opencc_jieba_pyo3 import OpenCC
