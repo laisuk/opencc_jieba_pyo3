@@ -121,7 +121,7 @@ checksum = "9f7c3e4beb33f85d45ae3e3a1792185706c8e16d043238c593331cc7cd313b50"
 [[package]]
 name = "opencc-jieba-rs"
 version = "0.9.0"
-source = "git+https://github.com/laisuk/opencc-jieba-rs.git?branch=master#7027d0f873136c1438ca475903fb8e19d04fd09d"
+source = "git+https://github.com/laisuk/opencc-jieba-rs.git?branch=master#ac14928aee67e81f2b7edc68ee866cc83d687e2a"
 dependencies = [
  "bytecount",
  "rayon",
