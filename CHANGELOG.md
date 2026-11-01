@@ -47,13 +47,28 @@ the [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format.
 
 - Preserved explicitly empty `segment --delim` and `--separator` values instead of replacing them with defaults.
 - Read stdin without closing its file descriptor and supported already-decoded text streams for embedded CLI use.
-- Rejected input/output aliases, including existing symbolic links and hard links, before CLI output can overwrite input.
+- Rejected input/output aliases, including existing symbolic links and hard links, before CLI output can overwrite
+  input.
 - Built Office/EPUB output in a temporary archive beside the destination, validated ZIP integrity, and replaced the
   destination only after successful completion, preserving existing output if conversion or validation fails.
 - Narrowed PPTX text-part selection to slides, notes, masters, layouts, comments, and comment authors using package
   paths rather than broad filename matching. Preserved XLSX shared/inline-string targeting, optional font preservation,
   and EPUB `mimetype` ordering and storage rules.
 - Corrected the search-mode docstring example to use the default space delimiter.
+
+### Performance
+
+- Optimized font placeholder restoration during Office and EPUB document conversion.
+- Replaced repeated whole-document string replacements with a single-pass restoration algorithm, avoiding quadratic
+  performance degradation when processing documents containing numerous font declarations.
+- Reduced unnecessary string allocations and repeated scans of XML/XHTML content.
+- Preserved existing font declarations, placeholder formats, conversion behavior, and public APIs.
+- Improved performance for font-heavy documents, particularly large EPUB files with thousands of font declarations.
+
+### Tests
+
+- Added regression coverage for font placeholder restoration, including known and unknown placeholders and non-recursive
+  replacement behavior.
 
 ### Removed
 
