@@ -1,5 +1,5 @@
 [package]
-name = "opencc_jieba_pyo3"
+name = "opencc-jieba-pyo3"
 version = "0.9.0"
 edition = "2021"
 authors = ["laisuk <laisuk@yahoo.com>"]
