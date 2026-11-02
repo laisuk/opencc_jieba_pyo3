@@ -129,7 +129,7 @@ dependencies = [
 [[package]]
 name = "opencc-jieba-rs"
 version = "0.9.0"
-source = "git+https://github.com/laisuk/opencc-jieba-rs.git?branch=master#c9b17648424de0462476727dc74c597eef2f44ca"
+source = "git+https://github.com/laisuk/opencc-jieba-rs.git?branch=master#ef9ac971d1c9a81bfb8c712fcff4a468f6b4f0c0"
 dependencies = [
  "bytecount",
  "rayon",
