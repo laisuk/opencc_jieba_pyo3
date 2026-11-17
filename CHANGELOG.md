@@ -7,7 +7,7 @@ the [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format.
 
 ---
 
-## [0.9.0] - Unreleased
+## \[0.9.0] - 2026-11-18
 
 ### Added
 
@@ -29,7 +29,7 @@ the [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format.
 - Segmentation now uses the Python API's shared formatter. `/` and identical token/POS separators are accepted
   as supplied; CLI help explains the modes, delimiter behavior, and HMM options.
 - Kept `segment` focused on Jieba analysis with optional normalization and `-U` dictionaries. Legacy `-D` arguments
-  remain accepted but are ignored; OpenCC conversion, punctuation conversion, and DeTofu are not applied.
+  remain accepted but are ignored; `OpenCC` conversion, punctuation conversion, and DeTofu are not applied.
 - Split CLI parser construction into `build_parser()` and allowed `main(argv)` for embedded callers and tests.
 - Resolved normalization, conversion, and fallback methods once when constructing the shared text pipeline,
   with separate fallback signatures and explicit optional-value narrowing for static type checking.
@@ -76,24 +76,24 @@ the [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format.
 
 ---
 
-## [0.8.0] - 2026-08-26
+## \[0.8.0] - 2026-08-26
 
 ### Added
 
-- Added post-load custom OpenCC conversion dictionaries with `CustomDictSpec` and `CustomDictFileSpec`, supporting
+- Added post-load custom `OpenCC` conversion dictionaries with `CustomDictSpec` and `CustomDictFileSpec`, supporting
   per-slot `append` and `override` modes.
 - Added `OpenCC.load_custom_dicts()` and `OpenCC.load_custom_dict_files()` for applying in-memory mappings and plaintext
   dictionary files to the current converter instance.
 - Added `OpenCC.available_slots()` to expose canonical custom-dictionary slot names from the Rust core.
 - Added `OpenCC.from_dicts()` and `OpenCC.from_dict_files()` convenience constructors for instances initialized with
-  custom OpenCC conversion dictionaries.
+  custom `OpenCC` conversion dictionaries.
 - Added structured Jieba user-dictionary entries with `UserDictEntry`, requiring `word` and `freq` with an optional POS
   `tag`.
 - Added `OpenCC.load_user_dict_entries()` and `OpenCC.load_user_dict_files()` for post-loading Jieba user dictionaries
   onto the current converter instance.
 - Added `OpenCC.from_user_dict_entries()` and `OpenCC.from_user_dict_files()` convenience constructors for instances
   initialized with Jieba user dictionaries.
-- Added Python type definitions for custom OpenCC dictionaries and Jieba user-dictionary entries.
+- Added Python type definitions for custom `OpenCC` dictionaries and Jieba user-dictionary entries.
 - Added Unicode compatibility normalization APIs:
     - `OpenCC.normalize_compat()` for CJK compatibility ideograph normalization.
     - `OpenCC.normalize_unicode_compat()` for extended Unicode compatibility and variant normalization.
@@ -101,21 +101,21 @@ the [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format.
 - Added CLI `-n` / `--norm-compat` to normalize CJK compatibility ideographs before conversion.
 - Added CLI `-E` / `--norm-compat-extended` to apply extended Unicode compatibility normalization before conversion;
   this takes precedence over `--norm-compat`.
-- Added CLI `-D` / `--custom-dict <slot:mode:path>` for loading custom OpenCC dictionary files. The option may be
+- Added CLI `-D` / `--custom-dict <slot:mode:path>` for loading custom `OpenCC` dictionary files. The option may be
   repeated and supports Windows drive-letter paths.
 - Added CLI `-U` / `--user-dict-file <file>` for loading Jieba user-dictionary files. The option may be repeated.
-- Added custom OpenCC and Jieba user-dictionary support to the `convert` and `office` CLI subcommands, with Jieba
+- Added custom `OpenCC` and Jieba user-dictionary support to the `convert` and `office` CLI subcommands, with Jieba
   user-dictionary support for `segment`.
 - Added Python integration tests covering conversion, Jieba segmentation and tagging, keyword extraction, custom
-  dictionaries, user dictionaries, config switching, Unicode compatibility normalization, and combined Jieba + OpenCC
+  dictionaries, user dictionaries, config switching, Unicode compatibility normalization, and combined Jieba + `OpenCC`
   custom phrase conversion.
 
 ### Changed
 
 - Updated `opencc-jieba-rs` from v0.7.6 to the v0.8.0 core API.
-- Custom OpenCC dictionaries and Jieba user dictionaries now use the Rust core's post-load model, allowing both
+- Custom `OpenCC` dictionaries and Jieba user dictionaries now use the Rust core's post-load model, allowing both
   dictionary layers to compose on the same `OpenCC` instance.
-- CLI converter initialization now loads Jieba user dictionaries before custom OpenCC dictionaries so phrase mappings
+- CLI converter initialization now loads Jieba user dictionaries before custom `OpenCC` dictionaries so phrase mappings
   can use the customized Jieba segmentation.
 - Refactored shared CLI dictionary option parsing and converter construction across `convert`, `segment`, and `office`.
 - Updated Python type stubs to expose custom dictionary, user dictionary, available-slot, and Unicode compatibility
@@ -123,7 +123,7 @@ the [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format.
 
 ---
 
-## [0.7.5] - 2026-05-08
+## \[0.7.5] - 2026-05-08
 
 ### Changed
 
@@ -144,7 +144,7 @@ the [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format.
 
 ---
 
-## [0.7.4] - 2026-04-10
+## \[0.7.4] - 2026-04-10
 
 ### Added
 
@@ -158,11 +158,11 @@ the [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format.
 
 ### Fixed
 
-- Fix CLI config handling to support case-insensitive OpenCC configs
+- Fix CLI config handling to support case-insensitive `OpenCC` configs
 
 ---
 
-## [0.7.3] - 2026-03-17
+## \[0.7.3] - 2026-03-17
 
 ### Changed
 
@@ -170,7 +170,7 @@ the [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format.
 
 ---
 
-## [0.7.2] - 2025-11.07
+## \[0.7.2] - 2025-11.07
 
 ### Changed
 
@@ -178,7 +178,7 @@ the [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format.
 
 ---
 
-## [0.7.1] - 2025-10-08
+## \[0.7.1] - 2025-10-08
 
 ### Changed
 
@@ -186,7 +186,7 @@ the [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format.
 
 ---
 
-## [0.7.0] - 2025-08-22
+## \[0.7.0] - 2025-08-22
 
 ### Changed
 
@@ -194,7 +194,7 @@ the [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format.
 
 ---
 
-## [0.6.0] 2025-07-12
+## \[0.6.0] 2025-07-12
 
 ### Added
 
@@ -206,7 +206,7 @@ the [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format.
 
 ---
 
-## [0.5.3] - 2025-06-27
+## \[0.5.3] - 2025-06-27
 
 ### Changed
 
@@ -214,7 +214,7 @@ the [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format.
 
 ---
 
-## [0.5.2] – 2025-06-19
+## \[0.5.2] – 2025-06-19
 
 ### Added
 
@@ -231,7 +231,7 @@ the [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format.
 
 ---
 
-## [0.5.1] – 2025-06-13
+## \[0.5.1] – 2025-06-13
 
 ### Added
 
@@ -246,13 +246,13 @@ the [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format.
 
 ---
 
-## [0.5.0] – 2025-06-12
+## \[0.5.0] – 2025-06-12
 
 ### Added
 
 - Initial release of `opencc-jieba-pyo3` on PyPI.
-- Python bindings for Rust-powered OpenCC conversion and Jieba segmentation using PyO3.
-- Support for standard OpenCC conversion configs:
+- Python bindings for Rust-powered `OpenCC` conversion and Jieba segmentation using PyO3.
+- Support for standard `OpenCC` conversion configs:
     - `s2t`, `s2tw`, `s2twp`, `s2hk`, `t2s`, `tw2s`, `tw2sp`, `hk2s`, `jp2t`, `t2jp`
 - CLI tool: `python -m opencc_jieba_rs` with options for text conversion.
 - Binary wheels for Linux, macOS, and Windows via `maturin`.

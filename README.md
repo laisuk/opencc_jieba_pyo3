@@ -21,7 +21,7 @@ algorithms.
 - Chinese word (Both Traditional and Simplified) segmentation (Jieba).
 - Keyword extraction (TF-IDF, TextRank).
 - Optional punctuation conversion and Chinese script detection.
-- Custom OpenCC conversion dictionaries from in-memory mappings or UTF-8 files.
+- Custom `OpenCC` conversion dictionaries from in-memory mappings or UTF-8 files.
 - Jieba user dictionaries from structured entries or UTF-8 files.
 - Add or update individual Jieba words with optional automatic frequency selection.
 - Explicit Unicode compatibility normalization and DeTofu display fallback replacement.
@@ -250,7 +250,7 @@ characters. DeTofu is explicit and does not run automatically during `convert()`
   `ExtI`.
 * `all` is accepted as an alias for `ExtB`, which applies Extension B and all supported later extension mappings.
 
-DeTofu is normally applied **after** OpenCC conversion:
+DeTofu is normally applied **after** `OpenCC` conversion:
 
 ```python
 from opencc_jieba_pyo3 import OpenCC
@@ -294,7 +294,7 @@ For example, `custom_tofu.txt` can contain:
 ```
 
 Replace `<TAB>` with an actual tab. Blank lines and comment lines are ignored. This format differs from both
-OpenCC conversion dictionaries and Jieba user dictionaries. Unmapped characters remain unchanged, and fallback
+`OpenCC` conversion dictionaries and Jieba user dictionaries. Unmapped characters remain unchanged, and fallback
 replacement does not guarantee that every character can be displayed by a particular font.
 
 Pass `level` explicitly to both Python DeTofu methods, for example `cc.detofu(text, "ExtB")`. Level names are
@@ -343,7 +343,7 @@ print(cc.jieba_segment_join(text, mode="tag", delim=" ", separator=":"))
 # 我:r 独自:d 来到:v 无人:n 海岸线:n
 ```
 
-The `jieba_*` methods analyze the supplied text without first applying the selected OpenCC conversion.
+The `jieba_*` methods analyze the supplied text without first applying the selected `OpenCC` conversion.
 
 | Mode     | Behavior                                                                                     | HMM option |
 |----------|----------------------------------------------------------------------------------------------|------------|
@@ -397,7 +397,8 @@ keywords = cc.jieba_keyword_extract_tfidf(
 
 Each item is split on whitespace, so `["n nr", "ns"]` equals `["n", "nr", "ns"]`. `"n"` alone does not include
 all noun subtypes. `None`, an empty list, or whitespace-only items apply no explicit POS restriction; the
-algorithm's other filtering still applies. Keyword analysis uses the supplied text without automatic OpenCC conversion.
+algorithm's other filtering still applies. Keyword analysis uses the supplied text without automatic `OpenCC`
+conversion.
 
 ---
 
@@ -407,11 +408,12 @@ v0.8.0 provides two complementary dictionary layers:
 
 - **Jieba user dictionaries** teach the tokenizer how to keep domain-specific words together and can optionally assign
   POS tags. They affect segmentation, tagging, keyword extraction, and the token boundaries seen by conversion.
-- **Custom OpenCC dictionaries** add or replace mappings in a conversion-dictionary slot. They affect conversion but do
+- **Custom `OpenCC` dictionaries** add or replace mappings in a conversion-dictionary slot. They affect conversion but
+  do
   not modify the Jieba dictionary.
 
 Both layers can be loaded into the same `OpenCC` instance. For a custom phrase that Jieba would otherwise split, add the
-phrase to the Jieba user dictionary as well as the appropriate OpenCC conversion slot.
+phrase to the Jieba user dictionary as well as the appropriate `OpenCC` conversion slot.
 
 ### Typed dictionary specifications
 
@@ -459,7 +461,7 @@ cc.add_word("自定义词语")  # Let Jieba choose the frequency.
 
 The word must be nonempty and contain no whitespace. Explicit frequencies must be non-negative integers that fit
 the platform's Rust `usize`; `tag` is optional. `add_word()` updates this instance's Jieba dictionary without defining
-an OpenCC replacement. Use `load_user_dict_entries()` for batches with required frequencies, and
+an `OpenCC` replacement. Use `load_user_dict_entries()` for batches with required frequencies, and
 `load_custom_dicts()` to define conversion mappings.
 
 To combine the dictionary layers:
@@ -531,7 +533,7 @@ word freq [tag]
 帕兰蒂尔 100000 nz
 ```
 
-Custom OpenCC dictionary files are UTF-8 tab-separated source/target mappings:
+Custom `OpenCC` dictionary files are UTF-8 tab-separated source/target mappings:
 
 ```text
 細路哥<TAB>小男孩
@@ -578,13 +580,14 @@ cc2 = OpenCC.from_dict_files("s2t", custom_specs)
 ```
 
 A single Jieba dictionary file can be loaded with `load_user_dict(path)`. Multiple files are applied in the supplied
-order. If a later Jieba file fails, earlier successfully loaded files remain applied. For custom OpenCC dictionary
+order. If a later Jieba file fails, earlier successfully loaded files remain applied. For custom `OpenCC` dictionary
 files, all files are parsed before mappings are applied. Duplicate source keys use the last supplied value.
-Custom OpenCC mappings remain available when switching configurations, but affect only configurations using their slot.
+Custom `OpenCC` mappings remain available when switching configurations, but affect only configurations using their
+slot.
 
-### Why Jieba and OpenCC dictionaries sometimes need each other
+### Why Jieba and `OpenCC` dictionaries sometimes need each other
 
-OpenCC phrase conversion operates on Jieba-tokenized text. If Jieba splits a custom phrase, a phrase mapping cannot
+`OpenCC` phrase conversion operates on Jieba-tokenized text. If Jieba splits a custom phrase, a phrase mapping cannot
 match the complete source text.
 
 For example, without a Jieba user entry:
@@ -618,7 +621,7 @@ opencc-jieba-pyo3 <command> [options]
 
 Available commands:
 
-- `convert` — convert text with OpenCC + Jieba.
+- `convert` — convert text with `OpenCC` + Jieba.
 - `segment` — segment/tag text with Jieba.
 - `office` — convert supported Office/document formats.
 
@@ -677,7 +680,7 @@ When normalization and DeTofu are both enabled, the processing order is:
 Normalize -> Convert -> DeTofu
 ```
 
-Custom Jieba and OpenCC dictionaries can be composed:
+Custom Jieba and `OpenCC` dictionaries can be composed:
 
 ```sh
 opencc-jieba-pyo3 convert -c hk2sp \
@@ -712,8 +715,8 @@ Jieba user dictionaries are supported with `-U`:
 echo "這個細路哥很靈活" | opencc-jieba-pyo3 segment -U tests/data/user_dict.txt
 ```
 
-Compatibility normalization is available with `-n` and `-E` before segmentation. Custom OpenCC `-D` mappings,
-OpenCC conversion, punctuation conversion, and DeTofu are not used by segmentation.
+Compatibility normalization is available with `-n` and `-E` before segmentation. Custom `OpenCC` `-D` mappings,
+`OpenCC` conversion, punctuation conversion, and DeTofu are not used by segmentation.
 
 ### Office/document conversion
 
@@ -748,7 +751,7 @@ The Office command supports:
 - `-E`, `--norm-compat-extended` for extended compatibility normalization; takes precedence over `-n`.
 - `--detofu [level]` for DeTofu fallback replacement after conversion.
 - `--detofu-file <file>` for additional custom DeTofu mappings; requires `--detofu`.
-- `-D`, `--custom-dict` for custom OpenCC dictionary files.
+- `-D`, `--custom-dict` for custom `OpenCC` dictionary files.
 - `-U`, `--user-dict-file` for Jieba user dictionaries.
 - `-F`, `--convert-filename` to convert the input filename stem using the same conversion pipeline when generating the
   default output filename; ignored when `-o` is specified.
@@ -778,7 +781,7 @@ XLSX conversion targets shared strings and inline-string cell text. EPUB output 
 OpenCC(config: str = "s2t")
 ```
 
-The class combines OpenCC conversion dictionaries with a Jieba tokenizer.
+The class combines `OpenCC` conversion dictionaries with a Jieba tokenizer.
 
 ### Configuration
 
@@ -838,7 +841,7 @@ Normalize -> Convert -> DeTofu
 - `load_user_dict_files(files) -> None`
 - `add_word(word: str, freq: int | None = None, tag: str | None = None) -> None`
 
-### Custom OpenCC dictionaries
+### Custom `OpenCC` dictionaries
 
 - `OpenCC.from_dicts(config="s2t", specs=None) -> OpenCC`
 - `OpenCC.from_dict_files(config="s2t", specs=None) -> OpenCC`
@@ -864,7 +867,7 @@ python -m unittest discover -s tests -v
 
 ## Rust Module Required
 
-[opencc-jieba-rs](https://github.com/laisuk/opencc-jieba-rs) : A Rust implementation of Jieba + OpenCC
+[opencc-jieba-rs](https://github.com/laisuk/opencc-jieba-rs) : A Rust implementation of Jieba + `OpenCC`
 
 ---
 

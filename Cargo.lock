@@ -129,7 +129,8 @@ dependencies = [
 [[package]]
 name = "opencc-jieba-rs"
 version = "0.9.0"
-source = "git+https://github.com/laisuk/opencc-jieba-rs.git?branch=master#f612e85864e4595f39c20fd5320b830d471e386e"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4e1b9d4a30e29f9a3160be994aaa63e657abdfe886b03fdd76240d0f6db5c32c"
 dependencies = [
  "bytecount",
  "rayon",
