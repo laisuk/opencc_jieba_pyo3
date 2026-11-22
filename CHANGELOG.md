@@ -7,6 +7,13 @@ the [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) format.
 
 ---
 
+## \[0.9.1 - Unreleased]
+
+### Added
+
+- Added `OpenCC.add_word_extended(word, freq=None, tag=None)` to register a Jieba word and its
+  Simplified or Traditional counterpart on the same instance.
+
 ## \[0.9.0] - 2026-11-18
 
 ### Added

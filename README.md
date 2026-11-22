@@ -464,6 +464,22 @@ the platform's Rust `usize`; `tag` is optional. `add_word()` updates this instan
 an `OpenCC` replacement. Use `load_user_dict_entries()` for batches with required frequencies, and
 `load_custom_dicts()` to define conversion mappings.
 
+Use `add_word_extended()` (added in v0.9.1) to register a word in both scripts:
+
+```python
+cc.add_word_extended("帕兰蒂尔", freq=100000, tag="nz")
+print(cc.jieba_tag("帕蘭蒂爾", hmm=False))
+# [('帕蘭蒂爾', 'nz')]
+```
+
+The method uses `s2t` or `t2s` based on the word's detected script, independently of the
+instance's conversion configuration. It passes the same optional frequency and POS tag to
+each registration. Omit `freq` to let Jieba select it. If the script is undetermined or
+conversion yields the same word, Jieba registers only the original. Register regional
+vocabulary separately. The method updates the instance's Jieba dictionary and leaves
+`OpenCC` conversion mappings intact. An empty word, whitespace in the word or tag, or a
+NUL character in the tag raises `ValueError`.
+
 To combine the dictionary layers:
 
 ```python
@@ -840,6 +856,7 @@ Normalize -> Convert -> DeTofu
 - `load_user_dict(path) -> None`
 - `load_user_dict_files(files) -> None`
 - `add_word(word: str, freq: int | None = None, tag: str | None = None) -> None`
+- `add_word_extended(word: str, freq: int | None = None, tag: str | None = None) -> None`
 
 ### Custom `OpenCC` dictionaries
 

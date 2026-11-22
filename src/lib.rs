@@ -621,6 +621,26 @@ impl OpenCC {
             .map_err(to_py_value_error)
     }
 
+    /// Register a Jieba word and its Simplified or Traditional counterpart.
+    ///
+    /// Uses s2t or t2s according to the word's detected script. Both forms
+    /// receive the same frequency and POS tag arguments. An identical
+    /// counterpart or an undetermined script results in one registration.
+    ///
+    /// Raises ValueError for an empty word, whitespace in the word or tag,
+    /// or a NUL character in the tag.
+    #[pyo3(signature = (word, freq = None, tag = None))]
+    fn add_word_extended(
+        &mut self,
+        word: &str,
+        freq: Option<usize>,
+        tag: Option<&str>,
+    ) -> PyResult<()> {
+        self.opencc
+            .add_word_extended(word, freq, tag)
+            .map_err(to_py_value_error)
+    }
+
     /// Segment Chinese text using Jieba.
     fn jieba_cut(&self, input_text: &str, hmm: bool) -> Vec<String> {
         self.opencc.jieba_cut(input_text, hmm)

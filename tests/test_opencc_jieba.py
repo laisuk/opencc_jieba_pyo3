@@ -223,7 +223,7 @@ class TestOpenCCJieba(unittest.TestCase):
             self.assertIsInstance(weight, float)
 
     # ------------------------------------------------------------------
-    # Custom OpenCC dictionary + Jieba user-dictionary tests go below.
+    # Custom `OpenCC` dictionary + Jieba user-dictionary tests go below.
     # ------------------------------------------------------------------
 
     def test_from_dicts_custom_st_characters(self):
@@ -543,6 +543,30 @@ class TestOpenCCJieba(unittest.TestCase):
         cc = OpenCC("s2t")
         cc.add_word("帕兰蒂尔", freq=100000, tag="nz")
         assert cc.jieba_cut("帕兰蒂尔", hmm=False) == ["帕兰蒂尔"]
+
+    def test_add_word_extended_registers_both_scripts(self):
+        simplified = "帕兰蒂尔"
+        traditional = "帕蘭蒂爾"
+        for word in (simplified, traditional):
+            with self.subTest(word=word):
+                cc = OpenCC("s2t")
+                self.assertIsNone(cc.add_word_extended(word, freq=100000, tag="nz"))
+                for form in (simplified, traditional):
+                    self.assertEqual(cc.jieba_tag(form, hmm=False), [(form, "nz")])
+
+    def test_add_word_extended_defaults_and_validation(self):
+        cc = OpenCC("s2t")
+        word = "帕兰蒂尔"
+        before = cc.jieba_tag(word, hmm=False)
+        for invalid_word, tag in (("", None), ("two words", None), (word, "bad tag"), (word, "bad\0tag")):
+            with self.subTest(word=invalid_word, tag=tag):
+                with self.assertRaises(ValueError):
+                    cc.add_word_extended(invalid_word, tag=tag)
+        self.assertEqual(cc.jieba_tag(word, hmm=False), before)
+
+        cc.add_word_extended(word)
+        self.assertEqual(cc.jieba_cut(word, hmm=False), [word])
+        self.assertEqual(cc.jieba_cut("帕蘭蒂爾", hmm=False), ["帕蘭蒂爾"])
 
 
 if __name__ == "__main__":

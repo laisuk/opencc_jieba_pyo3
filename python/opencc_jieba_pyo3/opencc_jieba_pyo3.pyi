@@ -24,7 +24,7 @@ class _CustomDictSpecRequired(TypedDict):
 
 
 class CustomDictSpec(_CustomDictSpecRequired, total=False):
-    """In-memory OpenCC replacements for one dictionary slot.
+    """In-memory `OpenCC` replacements for one dictionary slot.
 
     Required keys are ``slot`` (see ``OpenCC.available_slots()``) and ``pairs``
     (a list of source/target string tuples). Optional ``mode`` is ``"append"``
@@ -40,7 +40,7 @@ class _CustomDictFileSpecRequired(TypedDict):
 
 
 class CustomDictFileSpec(_CustomDictFileSpecRequired, total=False):
-    """UTF-8 OpenCC mapping files to load into one dictionary slot.
+    """UTF-8 `OpenCC` mapping files to load into one dictionary slot.
 
     Required keys are ``slot`` and ``files`` (a list of paths). Each file uses
     ``source<TAB>target`` lines, with an actual tab between the fields.
@@ -62,7 +62,7 @@ class OpenCC:
 
     ``convert()`` uses the selected configuration. The ``jieba_*`` methods
     analyze the text supplied to them without first converting its script.
-    OpenCC custom dictionaries define replacement text; Jieba user dictionaries
+    `OpenCC` custom dictionaries define replacement text; Jieba user dictionaries
     define word boundaries, frequencies, and part-of-speech (POS) tags.
     Both kinds of customization belong to this converter instance.
 
@@ -74,7 +74,7 @@ class OpenCC:
     config: str
 
     def __init__(self, config: str = "s2t") -> None:
-        """Create a converter with built-in OpenCC and Jieba dictionaries.
+        """Create a converter with built-in `OpenCC` and Jieba dictionaries.
 
         Args:
             config (str): Conversion name, case-insensitive. Defaults to ``"s2t"``
@@ -102,10 +102,10 @@ class OpenCC:
     @staticmethod
     def is_valid_config(config: str) -> bool:
         """
-        Check whether a string is a valid OpenCC configuration.
+        Check whether a string is a valid `OpenCC` configuration.
 
         This method performs a case-insensitive check against all supported
-        OpenCC conversion configurations (e.g. "s2t", "t2s", "s2tw").
+        `OpenCC` conversion configurations (e.g. "s2t", "t2s", "s2tw").
 
         Parameters
         ----------
@@ -122,7 +122,7 @@ class OpenCC:
     @staticmethod
     def supported_configs() -> List[str]:
         """
-        Return all supported OpenCC configuration names (canonical lowercase).
+        Return all supported `OpenCC` configuration names (canonical lowercase).
 
         Returns
         -------
@@ -133,7 +133,7 @@ class OpenCC:
     @staticmethod
     def canonicalise_config(config: str) -> str:
         """
-        Return the canonical OpenCC configuration name.
+        Return the canonical `OpenCC` configuration name.
 
         This method validates the given configuration string and returns its
         canonical lowercase form. Matching is case-insensitive.
@@ -165,7 +165,7 @@ class OpenCC:
 
     def apply_config(self, config: str) -> None:
         """
-        Apply a new OpenCC configuration.
+        Apply a new `OpenCC` configuration.
 
         The input is case-insensitive and will be normalized to the canonical
         lowercase form if valid.
@@ -187,7 +187,7 @@ class OpenCC:
 
         The configuration selects the direction and regional conversion rules;
         this method does not detect the input script and choose a direction.
-        Conversion uses the current OpenCC mappings and Jieba segmentation state.
+        Conversion uses the current `OpenCC` mappings and Jieba segmentation state.
 
         Args:
             input_text (str): Text to convert.
@@ -249,7 +249,7 @@ class OpenCC:
         ``normalize_unicode_compat()`` and ``normalize_compat()`` mappings.
 
         Args:
-            text (str): Text to normalize before optional OpenCC conversion.
+            text (str): Text to normalize before optional `OpenCC` conversion.
 
         Returns:
             str: Text with mapped forms normalized and unmapped characters retained.
@@ -267,7 +267,7 @@ class OpenCC:
         to combine both. This API is table-based, not a general Unicode NFKC API.
 
         Args:
-            text (str): Text to normalize before optional OpenCC conversion.
+            text (str): Text to normalize before optional `OpenCC` conversion.
 
         Returns:
             str: Text with mapped forms normalized and unmapped characters retained.
@@ -297,7 +297,7 @@ class OpenCC:
         - ``"ExtI"``: Extension I only
 
         This is intended as an optional post-processing step after ``convert()``.
-        It does not modify this OpenCC instance, its selected config, conversion
+        It does not modify this `OpenCC` instance, its selected config, conversion
         dictionaries, or Jieba segmentation state.
 
         Args:
@@ -336,7 +336,7 @@ class OpenCC:
         ``"ExtE"``, ``"ExtF"``, ``"ExtG"``, ``"ExtH"``, or ``"ExtI"``.
 
         This is an optional post-processing operation after ``convert()`` and
-        does not modify this OpenCC instance, its selected config, custom OpenCC
+        does not modify this `OpenCC` instance, its selected config, custom `OpenCC`
         dictionaries, Jieba user dictionaries, or segmentation state.
 
         Args:
@@ -391,7 +391,7 @@ class OpenCC:
 
         Adds words to the existing Jieba dictionary. This affects segmentation and
         tagging, and may indirectly affect phrase conversion through word boundaries.
-        It does not load OpenCC source/target mappings. Use
+        It does not load `OpenCC` source/target mappings. Use
         ``load_custom_dict_files()`` for conversion dictionaries.
 
         Raises:
@@ -408,7 +408,7 @@ class OpenCC:
 
         Calls ``load_user_dict()`` for each path. Earlier successfully loaded files
         remain applied if a later file fails; the whole call is not rolled back.
-        This extends the current Jieba dictionary, not OpenCC replacement mappings.
+        This extends the current Jieba dictionary, not `OpenCC` replacement mappings.
         An empty list does nothing.
 
         Raises:
@@ -417,7 +417,7 @@ class OpenCC:
         ...
 
     def load_custom_dicts(self, specs: List[CustomDictSpec]) -> None:
-        """Merge or replace OpenCC source/target mappings in selected slots.
+        """Merge or replace `OpenCC` source/target mappings in selected slots.
 
         Args:
             specs (List[CustomDictSpec]): Dictionaries with required ``slot`` and
@@ -438,7 +438,7 @@ class OpenCC:
         ...
 
     def load_custom_dict_files(self, specs: List[CustomDictFileSpec]) -> None:
-        """Load UTF-8 OpenCC source/target files into selected dictionary slots.
+        """Load UTF-8 `OpenCC` source/target files into selected dictionary slots.
 
         Args:
             specs (List[CustomDictFileSpec]): Dictionaries with required ``slot``
@@ -478,8 +478,8 @@ class OpenCC:
         words dynamically without creating a user-dictionary file.
 
         This affects the current instance's Jieba tokenizer only. It does
-        not modify OpenCC conversion dictionary slots, conversion configs,
-        or other OpenCC instances.
+        not modify `OpenCC` conversion dictionary slots, conversion configs,
+        or other `OpenCC` instances.
 
         Args:
             word (str):
@@ -517,7 +517,7 @@ class OpenCC:
         Notes:
             - Existing word entries may be updated.
             - The change takes effect without rebuilding the converter.
-            - Jieba user words can influence phrase-based OpenCC conversion
+            - Jieba user words can influence phrase-based `OpenCC` conversion
               by changing how input text is segmented.
             - For loading multiple words, use ``load_user_dict_entries()``
               or ``load_user_dict_files()``.
@@ -534,9 +534,28 @@ class OpenCC:
         """
         ...
 
+    def add_word_extended(
+            self, word: str, freq: Optional[int] = None, tag: Optional[str] = None
+    ) -> None:
+        """Register a Jieba word and its Simplified or Traditional counterpart.
+
+        The detected script determines whether to use s2t or t2s. If the
+        script is undetermined or conversion yields the same word, only the
+        original is registered. Both forms receive the same optional frequency
+        and POS tag. Omit freq to let Jieba choose the frequency.
+
+        Registration applies to this instance's Jieba dictionary. Use
+        add_word() to register an exact spelling, including regional terms.
+
+        Raises:
+            ValueError: The word is empty, the word or tag contains whitespace,
+                or the tag contains a NUL character.
+        """
+        ...
+
     @staticmethod
     def available_slots() -> List[str]:
-        """Return supported OpenCC conversion dictionary slot names.
+        """Return supported `OpenCC` conversion dictionary slot names.
 
         Use these names as ``slot`` in ``load_custom_dicts()`` or
         ``load_custom_dict_files()``. For example, ``"STCharacters"`` and
@@ -550,7 +569,7 @@ class OpenCC:
         """Segment the supplied text into words using Jieba's accurate mode.
 
         This mode chooses a segmentation, unlike full mode which includes
-        overlapping dictionary matches. The selected OpenCC ``config`` does not
+        overlapping dictionary matches. The selected `OpenCC` ``config`` does not
         convert the text before segmentation.
 
         Args:
@@ -576,7 +595,7 @@ class OpenCC:
         reconstruct the input because these tokens overlap.
 
         Args:
-            input_text (str): Text to segment, without automatic OpenCC conversion.
+            input_text (str): Text to segment, without automatic `OpenCC` conversion.
             hmm (bool): Enable HMM recognition of words beyond dictionary matches.
                 Defaults to True.
 
@@ -594,7 +613,7 @@ class OpenCC:
         Full mode has no HMM option.
 
         Args:
-            input_text (str): Text to segment, without automatic OpenCC conversion.
+            input_text (str): Text to segment, without automatic `OpenCC` conversion.
 
         Returns:
             List[str]: Word candidates; joining them may repeat overlapping text.
@@ -605,7 +624,7 @@ class OpenCC:
         """Segment text and attach a Jieba part-of-speech tag to each token.
 
         Args:
-            input_text (str): Text to analyze, without automatic OpenCC conversion.
+            input_text (str): Text to analyze, without automatic `OpenCC` conversion.
             hmm (bool): Enable HMM recognition of words beyond dictionary matches.
                 Defaults to True.
 
@@ -621,7 +640,7 @@ class OpenCC:
         """Segment in accurate mode (HMM enabled) and join tokens efficiently.
     
         Uses native Rust incremental joining without creating an intermediate
-        Python token list. Does not perform automatic OpenCC conversion.
+        Python token list. Does not perform automatic `OpenCC` conversion.
     
         Args:
             input_text (str): Text to segment.
@@ -643,7 +662,7 @@ class OpenCC:
         """Segment or POS-tag text and format the result as one string.
 
         Args:
-            input_text (str): Text to analyze, without automatic OpenCC conversion.
+            input_text (str): Text to analyze, without automatic `OpenCC` conversion.
             mode (str): Case-insensitive mode: ``"cut"`` chooses accurate-mode
                 words; ``"search"`` adds overlapping search tokens; ``"full"``
                 returns dictionary candidates without disambiguation; ``"tag"``
@@ -684,7 +703,7 @@ class OpenCC:
 
         TextRank ranks words using a graph of word co-occurrences in the input.
         Analysis uses the supplied text and current Jieba dictionary, without
-        applying the selected OpenCC conversion configuration.
+        applying the selected `OpenCC` conversion configuration.
 
         Args:
             input_text (str): Text to analyze.
@@ -714,7 +733,7 @@ class OpenCC:
         TF-IDF combines word frequency in the input with Jieba's built-in inverse
         document frequency data; it does not train a new corpus from this call.
         Analysis uses the supplied text and current Jieba dictionary, without
-        applying the selected OpenCC conversion configuration.
+        applying the selected `OpenCC` conversion configuration.
 
         Args:
             input_text (str): Text to analyze.
@@ -743,7 +762,7 @@ class OpenCC:
 
         TextRank ranks words using a graph of word co-occurrences in the input.
         Analysis uses the supplied text and current Jieba dictionary, without
-        applying the selected OpenCC conversion configuration.
+        applying the selected `OpenCC` conversion configuration.
 
         Args:
             input_text (str): Text to analyze.
@@ -774,7 +793,7 @@ class OpenCC:
         TF-IDF combines word frequency in the input with Jieba's built-in inverse
         document frequency data; it does not train a new corpus from this call.
         Analysis uses the supplied text and current Jieba dictionary, without
-        applying the selected OpenCC conversion configuration.
+        applying the selected `OpenCC` conversion configuration.
 
         Args:
             input_text (str): Text to analyze.

@@ -117,9 +117,9 @@ def build_opencc(
         args: argparse.Namespace,
 ) -> Tuple[OpenCC, List[CustomDictFileSpec]]:
     """
-    Construct one OpenCC instance and apply optional Jieba and OpenCC files.
+    Construct one `OpenCC` instance and apply optional Jieba and `OpenCC` files.
 
-    Jieba user dictionaries are loaded first so custom OpenCC phrase mappings
+    Jieba user dictionaries are loaded first so custom `OpenCC` phrase mappings
     see the intended segmentation.
     """
     custom_specs = custom_dict_specs_from_args(args)
@@ -249,7 +249,7 @@ def make_text_converter(
     """
     Build the shared text transformation pipeline.
 
-    The caller owns argument validation, OpenCC construction, dictionaries,
+    The caller owns argument validation, `OpenCC` construction, dictionaries,
     I/O, and command-specific behavior.
 
     Pipeline:
@@ -378,7 +378,7 @@ def subcommand_segment(args: argparse.Namespace) -> int:
 
     try:
         # Segmentation uses only Jieba user dictionaries (-U).
-        # OpenCC custom dictionaries (-D) are intentionally not loaded here.
+        # `OpenCC` custom dictionaries (-D) are intentionally not loaded here.
         opencc = build_jieba(args)
     except (OSError, RuntimeError, ValueError) as ex:
         print(f"❌ Failed to initialize OpenCC/Jieba: {ex}", file=sys.stderr)
@@ -426,12 +426,12 @@ def subcommand_segment(args: argparse.Namespace) -> int:
 
 
 def subcommand_office(args: argparse.Namespace) -> int:
-    """Convert an Office or EPUB document using OpenCC + Jieba.
+    """Convert an Office or EPUB document using `OpenCC` + Jieba.
 
     Reuse the shared text pipeline for document contents and, optionally,
     for the automatically generated output filename.
 
-    Jieba user dictionaries (-U) are loaded before OpenCC custom
+    Jieba user dictionaries (-U) are loaded before `OpenCC` custom
     dictionaries (-D). Explicit output filenames are never converted.
     """
     from .office_helper import OFFICE_FORMATS, convert_office_doc
@@ -473,7 +473,7 @@ def subcommand_office(args: argparse.Namespace) -> int:
         return 1
 
     # Reuse the dictionary-loading SSOT:
-    # Jieba -U first, then OpenCC -D.
+    # Jieba -U first, then `OpenCC` -D.
     try:
         opencc, _ = build_opencc(config, args)
     except (OSError, RuntimeError, ValueError) as ex:
@@ -726,7 +726,7 @@ def build_parser() -> argparse.ArgumentParser:
     add_normalization_options(parser_segment, "segmentation")
     add_user_dict_option(parser_segment)
     # Backward compatibility: accept -D/--custom-dict for segment, but do not
-    # expose or load it. OpenCC custom dictionaries do not affect Jieba-only
+    # expose or load it. `OpenCC` custom dictionaries do not affect Jieba-only
     # segmentation.
     parser_segment.add_argument(
         "-D",
